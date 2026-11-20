@@ -2,6 +2,10 @@
   <img src="assets/gym-organizer-logo.svg" alt="Gym Organizer — Train Smarter" width="520">
 </p>
 
+<p align="center">
+  <a href="https://github.com/TutsGita/GymOrganizer/releases/latest/download/GymOrganizer-0.1.1.apk"><strong>⬇ Baixar APK 0.1.1</strong></a>
+</p>
+
 # Gym Organizer
 
 Aplicativo Android offline para montar fichas, registrar treinos e acompanhar a evolução de carga. O catálogo, as fotos e o histórico ficam no aparelho.
@@ -15,16 +19,20 @@ Aplicativo Android offline para montar fichas, registrar treinos e acompanhar a 
 
 ## Compilar
 
-Requer JDK 17 e Android SDK 35. O app roda em Android 8.0 ou superior. A primeira compilação precisa de internet para baixar as dependências; o uso do app é offline.
+Requer JDK 17 e Android SDK 35. O app roda em Android 8.0 ou superior. A primeira compilação precisa de internet para baixar as dependências. O app funciona offline e só acessa a internet ao procurar atualizações.
 
-No Windows, execute `.\gradlew.bat :app:assembleDebug`. No Linux ou macOS, execute `./gradlew :app:assembleDebug`. O APK de teste fica em `app/build/outputs/apk/debug/app-debug.apk`.
+No Windows, execute `.\gradlew.bat :app:assembleDebug`. No Linux ou macOS, execute `./gradlew :app:assembleDebug`. O APK de teste fica em `app/build/outputs/apk/debug/app-debug.apk`. A versão publicada também pode ser baixada pelo botão no início desta página.
 
 ## Roadmap
 
 - Backup e restauração de fichas e histórico.
 - Exportação de fichas em PDF.
 - Tabela nutricional com registro de refeições.
-- Consulta opcional de novas versões no GitHub Releases.
+- Backup e restauração na nuvem.
+- Exportação dos treinos em PDF.
+- Tabela nutricional com registro de refeições.
+
+A consulta de atualização ao abrir o app e a distribuição pelo GitHub Releases já estão disponíveis.
 
 ## Licenças e créditos
 
