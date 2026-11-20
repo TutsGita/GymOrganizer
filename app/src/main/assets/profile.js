@@ -24,7 +24,7 @@ function profile() {
     </section>
     ${latest ? composition(days[days.length - 1]) : ""}
     <section class="glass stack"><h2>Balança Bluetooth</h2>
-      <small>Ative o Bluetooth e use a balança em kg. Compatibilidade experimental com OKOK V20/C0 e Xiaomi Mi Body Composition Scale 2.</small>
+      <small>Ative o Bluetooth e use a balança em kg. Modelos: OKOK V20/C0, Xiaomi Mi Body Composition Scale 2, PICOOC Mini Lite e QN/Renpho AABB (inclui FITINDEX FT-26R).</small>
       <a class="scale-link" href="gym://okok/scan">Procurar balança</a>
     </section>
     <form id="body-weight" class="glass stack"><h2>Registrar peso</h2>

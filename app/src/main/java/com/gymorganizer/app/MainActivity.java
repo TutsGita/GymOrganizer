@@ -24,7 +24,7 @@ import java.util.regex.Pattern;
 public final class MainActivity extends Activity {
     private static final String LATEST_RELEASE =
         "https://api.github.com/repos/TutsGita/GymOrganizer/releases/latest";
-    private static final String CURRENT_VERSION = "0.2.0";
+    private static final String CURRENT_VERSION = "0.2.1";
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private WebView view;
     private OkokScan scale;

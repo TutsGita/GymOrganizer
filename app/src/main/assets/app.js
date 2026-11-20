@@ -624,4 +624,8 @@ setInterval(() => {
   }
 }, 250);
 
-render();
+if (state.plans.length || state.active) {
+  loadCatalog().catch(error => toast(error.message)).finally(() => render());
+} else {
+  render();
+}
