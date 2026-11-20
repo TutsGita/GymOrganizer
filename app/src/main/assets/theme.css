@@ -36,7 +36,7 @@ button.danger { color: #ff9bbc; }
 #shell { max-width: 650px; margin: auto; }
 main { min-height: 100dvh; padding: 25px 19px 110px; }
 nav { position: fixed; z-index: 2; bottom: 0; left: 0; right: 0; background: #211d31eb; }
-.nav-inner { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); max-width: 650px; margin: auto; padding: 5px 12px 7px; }
+.nav-inner { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); max-width: 650px; margin: auto; padding: 5px 12px 7px; }
 nav button { display: grid; place-items: center; gap: 2px; background: transparent; border: 0; font-size: .72rem; color: var(--muted); padding: 5px; }
 nav button[aria-current] { color: var(--purple); background: #bd93f91c; }
 .row { display: flex; align-items: center; gap: 12px; }
@@ -124,7 +124,7 @@ textarea { resize: vertical; }
 .field[hidden] { display: none; }
 .calendar-title { text-align: center; font-size: 1rem; text-transform: capitalize; }
 .calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; text-align: center; }
-.calendar-grid button { position: relative; min-width: 0; padding: 4px 0 10px; min-height: 40px; border-radius: 8px; }
+.calendar-grid button { position: relative; min-width: 0; display: grid; place-items: center; line-height: 1; padding: 0; min-height: 40px; border-radius: 8px; }
 .calendar-grid button[aria-pressed="true"] { background: var(--purple); color: #20172b; font-weight: 800; }
 .calendar-dot { position: absolute; bottom: 5px; left: calc(50% - 2px); width: 4px; height: 4px; background: var(--green); border-radius: 50%; }
 .calendar-grid button[aria-pressed="true"] .calendar-dot { background: #20172b; }
@@ -142,3 +142,15 @@ textarea { resize: vertical; }
   to { opacity: 1; transform: none; }
 }
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+.move-up .glyph { transform: rotate(-90deg); }
+.move-down .glyph { transform: rotate(90deg); }
+.weight-dot { position: absolute; bottom: 5px; left: 52%; width: 4px; height: 4px; border-radius: 50%; background: #8be9fd; }
+.calendar-grid .calendar-dot { left: 33%; }
+#program-editor select { appearance: none; padding-right: 32px; background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%); background-size: 5px 5px; background-position: right 17px center, right 12px center; background-repeat: no-repeat; }
+.scale-link { display: grid; place-items: center; min-height: 46px; border-radius: 13px; background: var(--purple); color: #21152f; text-decoration: none; font-weight: 700; }
+@media (max-width: 380px) {
+  main { padding-inline: 12px; }
+  .nav-inner { padding-inline: 2px; }
+  nav button { padding-inline: 1px; min-width: 0; }
+  .card-actions { flex-wrap: wrap; }
+}

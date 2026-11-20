@@ -147,7 +147,8 @@ function history() {
           const key = localDate(new Date(date.getFullYear(), date.getMonth(), day, 12));
           const entries = byDay.get(key) || [];
           return `<button type="button" data-action="calendar-day" data-value="${key}" aria-pressed="${key === selectedDay}"
-            aria-label="${dateLabel(dayDate(key))}, ${plural(entries.length, "treino", "treinos")}">${day}
+            aria-label="${dateLabel(dayDate(key))}, ${plural(entries.length, "treino", "treinos")}${state.profile.weights[key] ? ", com pesagem" : ""}"><span>${day}</span>
+            ${state.profile.weights[key] ? '<span class="weight-dot" aria-hidden="true"></span>' : ""}
             ${entries.length ? `<span class="calendar-dot" aria-hidden="true"></span>` : ""}</button>`;
         }).join("")}
       </div>
@@ -157,6 +158,7 @@ function history() {
       <div><strong>${weekExercises}</strong><small>Exercícios concluídos</small></div>
       <div><strong>${duration(weekSeconds)}</strong><small>Tempo registrado</small></div></div>
     </section>
+    ${weightEvolution(selectedDay)}
     <section class="glass stack"><h2>${dateLabel(date)}</h2>
       ${selectedEntries.length ? selectedEntries.map(({ entry, index }) => `<article class="row spread">
         <div class="grow"><h3>${escaped(entry.name)}</h3><small>${duration(entry.seconds)} · ${entry.sets}/${entry.total} séries</small></div>

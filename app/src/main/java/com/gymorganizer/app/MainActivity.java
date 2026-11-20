@@ -24,9 +24,10 @@ import java.util.regex.Pattern;
 public final class MainActivity extends Activity {
     private static final String LATEST_RELEASE =
         "https://api.github.com/repos/TutsGita/GymOrganizer/releases/latest";
-    private static final String CURRENT_VERSION = "0.1.1";
+    private static final String CURRENT_VERSION = "0.2.0";
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private WebView view;
+    private OkokScan scale;
 
     @Override
     protected void onCreate(Bundle state) {
@@ -38,26 +39,49 @@ public final class MainActivity extends Activity {
         view.getSettings().setAllowFileAccess(false);
         view.getSettings().setAllowContentAccess(false);
         view.getSettings().setBlockNetworkLoads(true);
+        scale = new OkokScan(this, (mass, impedance) -> view.evaluateJavascript(
+            "window.importOkok(" + mass + "," + impedance + ")", null));
         view.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView webView, WebResourceRequest request) {
+                if (request.isForMainFrame() && request.hasGesture()
+                        && "gym://okok/scan".equals(request.getUrl().toString())) scale.request();
                 return true;
             }
         });
-        setContentView(view);
-        getWindow().getDecorView().setBackgroundColor(0xff171722);
-        view.setOnApplyWindowInsetsListener((v, insets) -> {
-            if (android.os.Build.VERSION.SDK_INT >= 35) {
-                android.graphics.Insets padding = insets.getInsets(
-                    WindowInsets.Type.systemBars() | WindowInsets.Type.displayCutout() | WindowInsets.Type.ime()
-                );
-                v.setPadding(padding.left, padding.top, padding.right, padding.bottom);
-            }
-            return insets;
-        });
+        android.widget.FrameLayout safeArea = new android.widget.FrameLayout(this);
+        safeArea.setBackgroundColor(0xff171722);
+        safeArea.addView(view);
+        if (android.os.Build.VERSION.SDK_INT >= 30) {
+            getWindow().setDecorFitsSystemWindows(false);
+            safeArea.setOnApplyWindowInsetsListener((container, insets) -> {
+                android.graphics.Insets safe = insets.getInsets(
+                    WindowInsets.Type.systemBars() | WindowInsets.Type.displayCutout() | WindowInsets.Type.ime());
+                container.setPadding(safe.left, safe.top, safe.right, safe.bottom);
+                return WindowInsets.CONSUMED;
+            });
+        } else if (android.os.Build.VERSION.SDK_INT >= 28) {
+            android.view.WindowManager.LayoutParams layout = getWindow().getAttributes();
+            layout.layoutInDisplayCutoutMode = android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_NEVER;
+            getWindow().setAttributes(layout);
+        }
+        setContentView(safeArea);
+        safeArea.requestApplyInsets();
         getWindow().setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         view.loadUrl("file:///android_asset/index.html");
         checkForUpdate();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int code, String[] permissions, int[] results) {
+        super.onRequestPermissionsResult(code, permissions, results);
+        if (code == OkokScan.PERMISSION) scale.afterPermission();
+    }
+
+    @Override
+    protected void onStop() {
+        scale.stop();
+        super.onStop();
     }
 
     private void checkForUpdate() {

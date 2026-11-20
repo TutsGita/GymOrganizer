@@ -82,6 +82,7 @@ function readState() {
 }
 
 let state = readState();
+state.profile ??= { height: null, weights: {} };
 state.programs ??= [];
 state.custom ??= [];
 state.custom.forEach(item => catalog.set(item.id, item));
@@ -182,8 +183,8 @@ function editor() {
           </div>
           <label class="field exercise-note">Nota do exercício<textarea name="note" data-index="${index}" maxlength="500" rows="2">${escaped(item.note)}</textarea></label>
           <div class="row exercise-note">
-            ${index > 0 ? button("move-exercise", "↑ Subir", "", "", `${index},-1`) : ""}
-            ${index < draft.exercises.length - 1 ? button("move-exercise", "↓ Descer", "", "", `${index},1`) : ""}
+            ${index > 0 ? button("move-exercise", "Subir", "next", "move-up", `${index},-1`) : ""}
+            ${index < draft.exercises.length - 1 ? button("move-exercise", "Descer", "next", "move-down", `${index},1`) : ""}
           </div>
           </article>`;
       }).join("")}
@@ -358,9 +359,9 @@ function exerciseDetailsButton(exercise, description) {
 
 function render(keepScroll = false) {
   const y = window.scrollY;
-  screen.innerHTML = ({ home, editor, library, programs, session, history })[page]();
+  screen.innerHTML = ({ home, editor, library, programs, session, history, profile })[page]();
   navigation.innerHTML = `<div class="nav-inner">${[["home", "Treinos", "fitness"], ["programs", "Planos", "list"], ["library", "Exercícios", "search"],
-    ["history", "Calendário", "history"]].map(([key, name, icon]) => `<button type="button" data-action="${key}" ${(page === key || key === "home" && ["editor", "session"].includes(page)) ? 'aria-current="page"' : ""}>
+    ["history", "Calendário", "history"], ["profile", "Perfil", "info"]].map(([key, name, icon]) => `<button type="button" data-action="${key}" ${(page === key || key === "home" && ["editor", "session"].includes(page)) ? 'aria-current="page"' : ""}>
       ${glyph(icon)}${name}</button>`).join("")}</div>`;
   if (page === "library") showResults(document.querySelector("#catalog-results"), "", false);
   document.querySelectorAll("[data-complete]").forEach(input => {
@@ -409,6 +410,7 @@ document.addEventListener("click", event => {
   switch (action) {
     case "home":
     case "library":
+    case "profile":
     case "history":
     case "programs":
       if (page === "editor") { back(); break; }
@@ -567,6 +569,7 @@ document.addEventListener("change", event => {
 document.addEventListener("submit", event => {
   event.preventDefault();
   const form = event.target;
+  if (form.id === "profile-height" || form.id === "body-weight") { saveMeasurement(form); return; }
   if (form.id === "exercise-log") { saveExerciseLog(form); return; }
   if (form.id === "program-editor") { saveProgram(); return; }
   if (form.id === "custom-exercise") { saveCustomExercise(form); return; }
