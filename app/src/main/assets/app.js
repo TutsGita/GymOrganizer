@@ -281,10 +281,22 @@ function showSetup() {
     ${[["guided", "Treino guiado", "Marque as séries e use o descanso automático.", "timer"],
         ["sheet", "Modo planilha", "Marque séries ou exercícios inteiros na ficha.", "list"]].map(([mode, title, desc, icon]) =>
        `<button type="button" class="mode ${setup.mode === mode ? "selected" : ""}" data-action="mode" data-value="${mode}" aria-pressed="${setup.mode === mode}">
-       <span class="tile-icon">${glyph(icon)}</span><span><strong>${title}</strong><br><small>${desc}</small></span></button>`).join("")}
-    <form id="start" class="stack">${setup.mode === "guided" ? `<label class="field">Descanso entre séries (segundos)
-      <input type="number" name="rest" value="${escaped(setup.rest)}" required min="0" max="900"></label><small>Use 0 para treinar sem contador.</small>` : ""}
+       <span class="tile-icon">${glyph(icon)}</span><span class="mode-copy"><strong>${title}</strong><small>${desc}</small></span></button>`).join("")}
+    <form id="start" class="stack"><fieldset id="setup-rest" class="stack">
+      <label class="field">Descanso entre séries (segundos)
+      <input type="number" name="rest" value="${escaped(setup.rest)}" required min="0" max="900"></label><small>Use 0 para treinar sem contador.</small></fieldset>
       <button type="submit" class="primary with-icon">${glyph("play")} Começar agora</button></form></div>`);
+}
+
+function selectWorkoutMode(mode) {
+  setup.mode = mode;
+  sheet.querySelectorAll(".mode").forEach(button => {
+    const selected = button.dataset.value === mode;
+    button.classList.toggle("selected", selected);
+    button.setAttribute("aria-pressed", String(selected));
+  });
+  const rest = sheet.querySelector("#setup-rest");
+  rest.hidden = rest.disabled = mode !== "guided";
 }
 
 function startSetup(plan, program = null) {
@@ -358,7 +370,14 @@ function render(keepScroll = false) {
   window.scrollTo(0, keepScroll ? y : 0);
 }
 
-function go(next) { page = next; render(); }
+function go(next) {
+  const changed = page !== next;
+  page = next;
+  render();
+  if (changed && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    screen.animate([{ opacity: .78 }, { opacity: 1 }], { duration: 160, easing: "ease-out" });
+  }
+}
 function closeSheet() {
   sheet.close();
   picker = false;
@@ -460,7 +479,7 @@ document.addEventListener("click", event => {
     case "setup":
       if (plan) startSetup(plan);
       break;
-    case "mode": setup.mode = value; showSetup(); break;
+    case "mode": selectWorkoutMode(value); break;
     case "skip-rest": state.active.restUntil = 0; save(); render(true); break;
     case "finish": {
       const stats = sessionStats(state.active);
