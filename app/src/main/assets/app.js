@@ -82,7 +82,13 @@ function readState() {
 }
 
 let state = readState();
-state.profile ??= { height: null, weights: {} };
+state.scaleProfiles ??= {
+  personal: { name: "Meu perfil", height: null, weights: {}, ...state.profile }
+};
+if (!Object.hasOwn(state.scaleProfiles, state.scaleProfileId)) {
+  state.scaleProfileId = Object.keys(state.scaleProfiles)[0];
+}
+delete state.profile;
 state.programs ??= [];
 state.custom ??= [];
 state.custom.forEach(item => catalog.set(item.id, item));
@@ -359,9 +365,9 @@ function exerciseDetailsButton(exercise, description) {
 
 function render(keepScroll = false) {
   const y = window.scrollY;
-  screen.innerHTML = ({ home, editor, library, programs, session, history, profile })[page]();
+  screen.innerHTML = ({ home, editor, library, programs, session, history, profile, themes })[page]();
   navigation.innerHTML = `<div class="nav-inner">${[["home", "Treinos", "fitness"], ["programs", "Planos", "list"], ["library", "Exercícios", "search"],
-    ["history", "Calendário", "history"], ["profile", "Perfil", "info"]].map(([key, name, icon]) => `<button type="button" data-action="${key}" ${(page === key || key === "home" && ["editor", "session"].includes(page)) ? 'aria-current="page"' : ""}>
+    ["history", "Calendário", "history"], ["profile", "Perfil", "info"], ["themes", "Temas", "palette"]].map(([key, name, icon]) => `<button type="button" data-action="${key}" ${(page === key || key === "home" && ["editor", "session"].includes(page)) ? 'aria-current="page"' : ""}>
       ${glyph(icon)}${name}</button>`).join("")}</div>`;
   if (page === "library") showResults(document.querySelector("#catalog-results"), "", false);
   document.querySelectorAll("[data-complete]").forEach(input => {
@@ -390,6 +396,7 @@ function confirmSheet(title, description, action, label) {
 }
 function back() {
   if (photoViewer.open) { photoViewer.close(); return true; }
+  if (closeScaleSheet()) return true;
   if (sheet.open) { closeSheet(); return true; }
   if (page === "editor") {
     confirmSheet("Sair da edição?", "As alterações desta ficha serão descartadas.", "leave-editor", "Sair da edição");
@@ -410,12 +417,23 @@ document.addEventListener("click", event => {
   switch (action) {
     case "home":
     case "library":
+    case "themes":
     case "profile":
     case "history":
     case "programs":
       if (page === "editor") { back(); break; }
       if (action === "programs") selectedProgram = null;
       go(action); break;
+    case "new-scale-profile":
+      openSheet("Novo perfil de pesagem", `<form id="new-scale-profile" class="stack">
+        <label class="field">Nome<input name="person" required maxlength="40"></label>
+        <button class="primary">Criar perfil</button>
+      </form>`);
+      break;
+    case "body-card": showBodyCard(value); break;
+    case "close-scale": closeScaleSheet(); break;
+    case "accept-scale-reading": acceptScaleReading(); break;
+    case "select-theme": selectTheme(value, control); break;
     case "view-workout": if (plan) viewWorkout(plan); break;
     case "view-program": selectedProgram = value; go("programs"); break;
     case "new-program": editProgram(); break;
@@ -530,6 +548,10 @@ document.addEventListener("input", event => {
 });
 
 document.addEventListener("change", event => {
+  if (event.target.id === "scale-profile-picker") {
+    switchScaleProfile(event.target.value);
+    return;
+  }
   const input = event.target;
   if (input.id === "progress-exercise") {
     progressExercise = input.value; render(true);
@@ -569,6 +591,7 @@ document.addEventListener("change", event => {
 document.addEventListener("submit", event => {
   event.preventDefault();
   const form = event.target;
+  if (form.id === "new-scale-profile") { createScaleProfile(form); return; }
   if (form.id === "profile-height" || form.id === "body-weight") { saveMeasurement(form); return; }
   if (form.id === "exercise-log") { saveExerciseLog(form); return; }
   if (form.id === "program-editor") { saveProgram(); return; }

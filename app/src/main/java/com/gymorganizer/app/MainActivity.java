@@ -13,6 +13,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 import org.json.JSONObject;
+import org.json.JSONTokener;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -24,10 +25,12 @@ import java.util.regex.Pattern;
 public final class MainActivity extends Activity {
     private static final String LATEST_RELEASE =
         "https://api.github.com/repos/TutsGita/GymOrganizer/releases/latest";
-    private static final String CURRENT_VERSION = "0.2.1";
+    private static final String CURRENT_VERSION = "0.3.0";
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private WebView view;
     private OkokScan scale;
+    private static final int EXPORT_CARD = 28;
+    private byte[] cardImage;
 
     @Override
     protected void onCreate(Bundle state) {
@@ -39,13 +42,21 @@ public final class MainActivity extends Activity {
         view.getSettings().setAllowFileAccess(false);
         view.getSettings().setAllowContentAccess(false);
         view.getSettings().setBlockNetworkLoads(true);
-        scale = new OkokScan(this, (mass, impedance) -> view.evaluateJavascript(
-            "window.importOkok(" + mass + "," + impedance + ")", null));
+        scale = new OkokScan(this, (status, message, mass, impedance) -> view.evaluateJavascript(
+            "window.showScaleStatus(" + JSONObject.quote(status) + "," + JSONObject.quote(message)
+                + "," + mass + "," + impedance + ")", null));
         view.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView webView, WebResourceRequest request) {
-                if (request.isForMainFrame() && request.hasGesture()
-                        && "gym://okok/scan".equals(request.getUrl().toString())) scale.request();
+                if (!request.isForMainFrame()) return true;
+                String url = request.getUrl().toString();
+                if ("gym://okok/cancel".equals(url)) scale.stop();
+                if (request.hasGesture()) {
+                    if ("gym://okok/scan".equals(url)) scale.request();
+                    if ("gym://okok/diagnostic".equals(url)) scale.requestDiagnostic();
+                    if ("gym://okok/weight".equals(url)) scale.confirmPending();
+                    if ("gym://body-card/export".equals(url)) exportBodyCard();
+                }
                 return true;
             }
         });
@@ -80,8 +91,56 @@ public final class MainActivity extends Activity {
 
     @Override
     protected void onStop() {
-        scale.stop();
+        scale.suspend();
         super.onStop();
+    }
+
+    private void exportBodyCard() {
+        if (cardImage != null) return;
+        view.evaluateJavascript("window.bodyCardPng()", result -> {
+            try {
+                Object encoded = new JSONTokener(result).nextValue();
+                if (!(encoded instanceof String) || ((String) encoded).length() > 2_000_000) {
+                    throw new IllegalArgumentException("Imagem inválida");
+                }
+                cardImage = android.util.Base64.decode((String) encoded, android.util.Base64.DEFAULT);
+                Intent destination = new Intent(Intent.ACTION_CREATE_DOCUMENT)
+                    .addCategory(Intent.CATEGORY_OPENABLE)
+                    .setType("image/png")
+                    .putExtra(Intent.EXTRA_TITLE, "Gym Organizer - Pesagem.png");
+                startActivityForResult(destination, EXPORT_CARD);
+            } catch (Exception error) {
+                cardImage = null;
+                showCardMessage("Não foi possível preparar o cartão.");
+            }
+        });
+    }
+
+    @Override
+    protected void onActivityResult(int request, int result, Intent data) {
+        super.onActivityResult(request, result, data);
+        if (request != EXPORT_CARD) return;
+        byte[] pixels = cardImage;
+        cardImage = null;
+        if (result != RESULT_OK || data == null || data.getData() == null) return;
+        if (pixels == null) { showCardMessage("Gere o cartão novamente."); return; }
+        Uri destination = data.getData();
+        try (java.io.OutputStream stream = getContentResolver().openOutputStream(destination)) {
+            if (stream == null) throw new java.io.IOException("Destino indisponível");
+            stream.write(pixels);
+        } catch (java.io.IOException | SecurityException error) {
+            showCardMessage("Não foi possível salvar a imagem.");
+            return;
+        }
+        Intent share = new Intent(Intent.ACTION_SEND).setType("image/png")
+            .putExtra(Intent.EXTRA_STREAM, destination)
+            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        share.setClipData(android.content.ClipData.newUri(getContentResolver(), "Cartão da pesagem", destination));
+        startActivity(Intent.createChooser(share, "Compartilhar cartão"));
+    }
+
+    private void showCardMessage(String message) {
+        android.widget.Toast.makeText(this, message, android.widget.Toast.LENGTH_SHORT).show();
     }
 
     private void checkForUpdate() {

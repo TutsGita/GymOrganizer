@@ -1,5 +1,17 @@
 # Histórico de versões
 
+## 0.3.0
+
+- Perfis de pesagem independentes para compartilhar a mesma balança. O histórico anterior fica em Meu perfil.
+- Tela de busca e confirmação da balança integrada ao tema escolhido e com identificação de quem vai receber a pesagem.
+- Cartão de composição por data com exportação em PNG e compartilhamento pelo Android.
+
+## 0.2.2
+
+- Aba Temas com sete paletas e preferência salva no aparelho.
+- Cartões separados para peso, impedância e estimativas de composição no Perfil e no Calendário.
+- Diagnóstico Bluetooth por endereço da balança e leitura de unidades adicionais nos pacotes OKOK C0.
+
 ## 0.2.1
 
 - Fotos e mapas musculares voltam a carregar ao reabrir um treino salvo.

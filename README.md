@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/TutsGita/GymOrganizer/releases/download/v0.2.1/GymOrganizer-0.2.1.apk"><strong>⬇ Baixar APK 0.2.1</strong></a>
+  <a href="https://github.com/TutsGita/GymOrganizer/releases/download/v0.3.0/GymOrganizer-0.3.0.apk"><strong>⬇ Baixar APK 0.3.0</strong></a>
 </p>
 
 # Gym Organizer
@@ -16,7 +16,7 @@ Monte sua ficha, registre séries e acompanhe a evolução das cargas no Android
 
 ## Balanças Bluetooth
 
-Em **Perfil**, toque em **Procurar balança** e faça a pesagem em kg. Confirme a leitura para salvá-la no calendário.
+Em **Perfil**, toque em **Procurar balança** e faça a pesagem em kg. Escolha o perfil da pessoa e confirme a leitura para salvá-la no calendário. Cada perfil mantém seus próprios dados e pesagens. Use **Criar cartão** em uma pesagem para exportar a composição como PNG.
 
 | Modelo ou protocolo | Dados recebidos |
 | --- | --- |
@@ -27,7 +27,7 @@ Em **Perfil**, toque em **Procurar balança** e faça a pesagem em kg. Confirme 
 
 A compatibilidade depende do protocolo do modelo. A versão 0.2.1 teve os formatos de dados verificados por testes de software. A leitura de peso OKOK também foi confirmada em aparelho físico.
 
-O perfil calcula água corporal e gordura a partir das medidas cadastradas. A estimativa de massa muscular também usa a impedância. Equações de [Watson](https://doi.org/10.1093/ajcn/33.1.27), [Deurenberg](https://pubmed.ncbi.nlm.nih.gov/2043597/) e [Janssen](https://pubmed.ncbi.nlm.nih.gov/10926627/).
+O perfil e o calendário exibem peso, impedância em ohms e estimativas separadas de água, gordura, músculo e massa óssea. Com uma leitura de impedância, o cálculo segue os coeficientes documentados em [okok-bia-formulas](https://github.com/100nandoo/okok-bia-formulas). Sem impedância, água e gordura usam as equações de [Watson](https://doi.org/10.1093/ajcn/33.1.27) e [Deurenberg](https://pubmed.ncbi.nlm.nih.gov/2043597/). A massa óssea é uma aproximação de massa mineral, sem medição de densidade óssea.
 
 ## Instalação e desenvolvimento
 

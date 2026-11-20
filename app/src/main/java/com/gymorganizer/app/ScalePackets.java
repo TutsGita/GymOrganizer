@@ -34,6 +34,7 @@ final class ScalePackets {
     static double[] decode(int id, byte[] bytes) {
         if (bytes == null || bytes.length < 7 || (bytes[6] & 1) == 0) return null;
         int weightOffset, impedanceOffset, divisor;
+        int unit = 0;
         if (id == 0x20ca && bytes.length == 19) {
             int checksum = 0x20;
             for (int i = 0; i < 12; i++) checksum ^= bytes[i] & 255;
@@ -41,13 +42,20 @@ final class ScalePackets {
             weightOffset = 8;
             impedanceOffset = 10;
             divisor = (bytes[6] & 4) != 0 ? 100 : 10;
-        } else if ((id & 255) == 0xc0 && (bytes[6] & 24) == 0) {
+        } else if ((id & 255) == 0xc0) {
+            unit = (bytes[6] >>> 3) & 3;
             weightOffset = 0;
             impedanceOffset = 2;
             int precision = (bytes[6] >> 1) & 3;
             divisor = precision == 2 ? 100 : precision == 1 ? 1 : 10;
         } else return null;
-        double mass = unsignedWord(bytes, weightOffset) / (double) divisor;
+        int weight = unsignedWord(bytes, weightOffset);
+        double mass = weight / (double) divisor;
+        switch (unit) {
+            case 1: mass *= 0.5; break;
+            case 2: mass *= 0.45359237; break;
+            case 3: mass = (weight >>> 8) * 6.35029318 + (weight & 255) * 0.45359237 / divisor; break;
+        }
         int raw = unsignedWord(bytes, impedanceOffset);
         if (mass <= 0 || mass > 1000) return null;
         return new double[]{mass, raw == 65535 ? 0 : raw / 10.0};

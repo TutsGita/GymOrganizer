@@ -147,8 +147,8 @@ function history() {
           const key = localDate(new Date(date.getFullYear(), date.getMonth(), day, 12));
           const entries = byDay.get(key) || [];
           return `<button type="button" data-action="calendar-day" data-value="${key}" aria-pressed="${key === selectedDay}"
-            aria-label="${dateLabel(dayDate(key))}, ${plural(entries.length, "treino", "treinos")}${state.profile.weights[key] ? ", com pesagem" : ""}"><span>${day}</span>
-            ${state.profile.weights[key] ? '<span class="weight-dot" aria-hidden="true"></span>' : ""}
+            aria-label="${dateLabel(dayDate(key))}, ${plural(entries.length, "treino", "treinos")}${activeScaleProfile().weights[key] ? ", com pesagem" : ""}"><span>${day}</span>
+            ${activeScaleProfile().weights[key] ? '<span class="weight-dot" aria-hidden="true"></span>' : ""}
             ${entries.length ? `<span class="calendar-dot" aria-hidden="true"></span>` : ""}</button>`;
         }).join("")}
       </div>

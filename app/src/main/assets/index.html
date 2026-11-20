@@ -3,10 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="dark">
+  <meta name="color-scheme" content="dark light">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' file:; img-src 'self' file:; style-src 'self' file:; script-src 'self' file:; connect-src 'none'; object-src 'none'; base-uri 'none'">
   <title>Gym Organizer</title>
   <link rel="stylesheet" href="theme.css">
+  <script src="themes.js"></script>
   <script defer src="icons.js"></script>
   <script defer src="body-map-data.js"></script>
   <script defer src="muscle-map.js"></script>
@@ -21,6 +22,7 @@
     <nav id="navigation" aria-label="Navegação principal"></nav>
   </div>
   <dialog id="sheet"></dialog>
+  <dialog id="scale-sheet" aria-labelledby="scale-title"></dialog>
   <dialog id="photo-viewer" aria-labelledby="photo-title"></dialog>
   <div id="toast" role="status" hidden></div>
 </body>
