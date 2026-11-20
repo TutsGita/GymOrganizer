@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 340" role="img" aria-labelledby="title desc">
+  <title id="title">Gym Organizer</title>
+  <desc id="desc">Logo vetorial com um G geométrico roxo dentro de um hexágono, acompanhado do nome Gym Organizer e do slogan Train Smarter.</desc>
+  <defs>
+    <linearGradient id="g-gradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#A98BFF"/>
+      <stop offset="52%" stop-color="#8068F0"/>
+      <stop offset="100%" stop-color="#5549D8"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="520" height="340" rx="24" fill="#171529"/>
+  <path d="M260 24 L331 65 L331 147 L260 188 L189 147 L189 65 Z"
+        fill="none" stroke="#514875" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M287 70 L260 54 L213 81 L213 132 L260 159 L307 132 L307 104 L260 104"
+        fill="none" stroke="url(#g-gradient)" stroke-width="19"
+        stroke-linecap="butt" stroke-linejoin="miter"/>
+  <path d="M260 104 H307 V132"
+        fill="none" stroke="url(#g-gradient)" stroke-width="19"
+        stroke-linecap="butt" stroke-linejoin="miter"/>
+  <text x="260" y="239" text-anchor="middle"
+        font-family="Inter, Montserrat, Arial, sans-serif"
+        font-size="23" font-weight="750" letter-spacing="-0.5"
+        fill="#F0EDFF">GYM ORGANIZER</text>
+  <text x="260" y="270" text-anchor="middle"
+        font-family="Inter, Montserrat, Arial, sans-serif"
+        font-size="11" font-weight="400" letter-spacing="0.3"
+        fill="#AAA4C4">TRAIN SMARTER</text>
+</svg>

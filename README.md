@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/gym-organizer-logo.svg" alt="Gym Organizer — Train Smarter" width="520">
+</p>
+
 # Gym Organizer
 
 Aplicativo Android offline para montar fichas, registrar treinos e acompanhar a evolução de carga. O catálogo, as fotos e o histórico ficam no aparelho.
@@ -29,3 +33,4 @@ No Windows, execute `.\gradlew.bat :app:assembleDebug`. No Linux ou macOS, execu
 - [Body Muscles](https://github.com/emmorts/body-muscles) — mapa muscular, com arte de Ivan Vulović ([Apache 2.0](app/src/main/assets/LICENSE-body-muscles.txt), [atribuições](app/src/main/assets/NOTICE-body-muscles.txt)).
 
 A licença do código do Gym Organizer ainda não foi definida.
+
