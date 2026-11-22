@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/TutsGita/GymOrganizer/releases/download/v0.4.0/GymOrganizer-0.4.0.apk"><strong>⬇ Baixar APK 0.4.0</strong></a>
+  <a href="https://github.com/TutsGita/GymOrganizer/releases/download/v0.4.1/GymOrganizer-0.4.1.apk"><strong>⬇ Baixar APK 0.4.1</strong></a>
 </p>
 
 # Gym Organizer
@@ -43,7 +43,7 @@ Em **Perfil**, consulte o histórico de versões offline e verifique atualizaç�
 - Em **Nutrição → Água**, registre o consumo, ajuste a meta e configure lembretes opcionais.
 - Em **Nutrição → Alimentação**, consulte a TACO online ou cadastre um alimento pela tabela do rótulo. No Android com Google Play Services, a câmera lê o código. A busca do produto usa o Open Food Facts. Os diários salvos ficam disponíveis offline.
 - A meta calórica usa peso, altura, idade, atividade e objetivo. Quando disponível e dentro dos limites de plausibilidade do app, a estimativa de repouso usa o modelo OKOK com impedância. Sem essa estimativa, usa [Mifflin–St Jeor](https://pubmed.ncbi.nlm.nih.gov/2305711/). As metas são referências para adultos. Consulte profissionais de saúde e nutrição para metas individuais.
-- Os textos em português ficam disponíveis offline. Em exercícios com vídeo, use **Assistir online** ou **Salvar vídeo offline**. Para liberar espaço, abra **Treinos → Exercícios → Vídeos salvos**.
+- Os textos em português e as imagens do catálogo ficam disponíveis offline. Em **Treinos → Exercícios**, o filtro **Somente exercícios com foto e vídeo** mostra as fichas com as duas mídias. Para assistir sem internet, use **Salvar vídeo offline**.
 
 ## Corridas e pedais
 

@@ -2,6 +2,13 @@
 
 const releaseHistory = [
   [
+    "0.4.1",
+    [
+      "Resumo de execução em português em Como fazer, com passo a passo expansível disponível offline.",
+      "Fotos e demonstrações licenciadas como apoio às instruções, com filtro por exercícios com foto e vídeo."
+    ]
+  ],
+  [
     "0.4.0",
     [
       "Botão central para iniciar ou retomar treino. Água e alimentação ficam na aba Nutrição. Temas e Conquistas ficam no Perfil.",

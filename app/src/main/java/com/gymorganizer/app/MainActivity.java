@@ -101,7 +101,11 @@ public final class MainActivity extends Activity {
                     if ("gym://body-card/export".equals(url)) exportBodyCard();
                     if ("gym://updates/check".equals(url)) updates.check(true);
                     Uri target = request.getUrl();
-                    if (url.matches("https://commons\\.wikimedia\\.org/wiki/File:[A-Za-z0-9_-]+\\.webm")) {
+                    if (url.matches("https://commons\\.wikimedia\\.org/wiki/File:[A-Za-z0-9_-]+\\.(?i:webm|jpg)")
+                            || url.matches("https://wger\\.de/media/exercise-images/[A-Za-z0-9_./%()\\-]+")
+                            || url.matches("https://wger\\.de/media/exercise-video/[0-9]+/[A-Za-z0-9_-]+\\.(?i:mp4|mov|webm|m4v)")
+                            || url.matches("https://creativecommons\\.org/(licenses/by(?:-sa)?/(?:3|4)\\.0|publicdomain/(?:mark|zero)/1\\.0)/?")
+                            || "https://github.com/namnq/workout-free-videos/tree/v2.0.0".equals(url)) {
                         try {
                             startActivity(new Intent(Intent.ACTION_VIEW, target));
                         } catch (android.content.ActivityNotFoundException ignored) { }

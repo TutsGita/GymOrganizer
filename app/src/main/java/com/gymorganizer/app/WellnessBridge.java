@@ -34,7 +34,7 @@ import java.util.Set;
 import javax.net.ssl.HttpsURLConnection;
 
 final class WellnessBridge {
-    private static final String USER_AGENT = "GymOrganizer/0.4.0 (https://github.com/TutsGita/GymOrganizer)";
+    private static final String USER_AGENT = "GymOrganizer/0.4.1 (https://github.com/TutsGita/GymOrganizer)";
     private static final int MAX_RESPONSE = 360_000;
     private static final long MAX_VIDEO = 64L * 1024 * 1024;
     private static final long VIDEO_BUDGET = 128L * 1024 * 1024;
@@ -240,7 +240,8 @@ final class WellnessBridge {
 
     private static boolean validVideo(String url) {
         return url != null && (url.matches("https://wger\\.de/media/exercise-video/[0-9]+/[a-zA-Z0-9_-]+\\.(?i:mp4|mov|webm|m4v)")
-            || url.matches("https://upload\\.wikimedia\\.org/wikipedia/commons/[a-f0-9]/[a-f0-9]{2}/[A-Za-z0-9_-]+\\.webm"));
+            || url.matches("https://upload\\.wikimedia\\.org/wikipedia/commons/[a-f0-9]/[a-f0-9]{2}/[A-Za-z0-9_-]+\\.webm")
+            || url.matches("https://cdn\\.jsdelivr\\.net/gh/namnq/workout-free-videos@v2\\.0\\.0/media/video/[a-z0-9-]+\\.mp4"));
     }
 
     private File fileFor(String url) { return new File(videos, url.substring(url.lastIndexOf('/') + 1)); }

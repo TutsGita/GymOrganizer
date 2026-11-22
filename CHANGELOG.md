@@ -1,5 +1,10 @@
 # Histórico de versões
 
+## 0.4.1
+
+- Resumo de execução em português na seção **Como fazer**, com passo a passo expansível e disponível offline.
+- Fotos e demonstrações licenciadas complementam as instruções. O catálogo oferece um filtro para exercícios com foto e vídeo.
+
 ## 0.4.0
 
 Alterações desde a última versão pública, 0.3.0.

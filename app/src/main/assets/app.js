@@ -141,7 +141,7 @@ function loadCatalog() {
     script.onerror = () => reject(new Error("Catálogo offline indisponível."));
     document.head.appendChild(script);
   });
-  catalogLoading = Promise.all(["catalog.js", "wger-catalog.js", "catalog-pt.js", "wger-videos.js", "commons-videos.js"].map(load)).then(() => {
+  catalogLoading = Promise.all(["catalog.js", "wger-catalog.js", "catalog-pt.js", "wger-videos.js", "commons-videos.js", "exercise-media.js"].map(load)).then(() => {
     for (const item of window.EXERCISES || []) catalog.set(item.id, item);
     for (const item of window.WGER_EXERCISES || []) {
       const previous = catalog.get(item.id);
@@ -154,9 +154,17 @@ function loadCatalog() {
           portuguese: true, machineTranslated: true });
       }
     }
-    for (const [id, video] of Object.entries({...window.WGER_VIDEO_ALIASES, ...window.COMMONS_EXERCISE_VIDEOS})) {
+    const media = window.GYM_EXERCISE_MEDIA;
+    for (const [id, video] of Object.entries({...media.videos, ...window.WGER_VIDEO_ALIASES, ...window.COMMONS_EXERCISE_VIDEOS})) {
       const item = catalog.get(id);
       if (item && !item.video) item.video = video;
+    }
+    for (const [id, images] of Object.entries(media.photos)) {
+      const item = catalog.get(id);
+      if (item) {
+        item.images = images.map(image => image.file);
+        item.imageCredits = images;
+      }
     }
     for (const item of state.custom) catalog.set(item.id, item);
     catalogReady = true;
@@ -220,6 +228,7 @@ function library() {
   return heading("Exercícios") + `<section class="stack">
     ${button("create-custom", "Criar exercício", "plus")}
     <label class="field">Buscar no catálogo <input id="catalog-search" type="search" placeholder="Nome, músculo ou equipamento" autocomplete="off"></label>
+    <label class="row"><input id="complete-media" type="checkbox"> Somente exercícios com foto e vídeo</label>
     ${button("saved-exercise-videos", "Vídeos salvos", "play")}
     <div id="catalog-results" class="catalog"></div></section>`;
 }
@@ -232,11 +241,13 @@ function showResults(container, query, adding) {
     return;
   }
   const words = normalized(query.trim()).split(/\s+/).filter(Boolean);
-  const found = words.length ? [...catalog.values()].filter(item => {
+  const withMedia = !adding && document.querySelector("#complete-media")?.checked;
+  const found = words.length || withMedia ? [...catalog.values()].filter(item => {
+    if (withMedia && (!item.images?.length || !item.video)) return false;
     const text = searchText(item);
     return words.every(word => text.includes(word));
   }) : [...state.custom, ...popularIds.map(id => catalog.get(id)).filter(Boolean)];
-  const label = words.length ? plural(found.length, "resultado", "resultados") : `Próprios e populares · ${catalog.size} no catálogo`;
+  const label = words.length || withMedia ? plural(found.length, "resultado", "resultados") : `Próprios e populares · ${catalog.size} no catálogo`;
   container.innerHTML = `<small>${label}${found.length > 50 ? " · refine a busca para ver mais" : ""}</small>` +
     found.slice(0, 50).map(item => {
       const added = adding && draft.exercises.some(row => row.id === item.id);
@@ -262,15 +273,24 @@ function showPicker() {
 }
 
 function showDetails(item) {
+  const steps = (item.instructions || []).map(step => step.trim()).filter(Boolean);
+  const first = steps[0] || "";
+  const preview = first.length > 215 ? first.slice(0, 210).replace(/\s+\S*$/, "") + "…" : first;
+  const instructions = steps.length > 1 || preview !== first
+    ? `<details class="glass"><summary>Passo a passo</summary><ol>${steps.map(step => `<li>${escaped(step)}</li>`).join("")}</ol></details>` : "";
   openSheet(titleFor(item), `<div class="stack">
     ${titleFor(item) !== item.name ? `<p class="muted">${escaped(item.name)}</p>` : ""}
     ${item.images?.length ? `<div class="media">${item.images.map((path, index) =>
       `<button type="button" class="photo-trigger" data-action="zoom-photo" data-value="${escaped(item.id)}"
         data-photo="${index}" aria-label="Ampliar foto ${index + 1} de ${escaped(titleFor(item))}">
         ${photo(path)}<span>${glyph("search")}</span></button>`).join("")}</div>` : ""}
+    ${item.imageCredits?.length ? `<details class="media-credits"><summary>Créditos das imagens</summary>
+      ${item.imageCredits.map(image => `<p><small>${escaped(image.author)} · ${escaped(image.license)} · ${escaped(image.edit)}<br>
+        <a class="accent" href="${escaped(image.source)}">Original</a> ·
+        <a class="accent" href="${escaped(image.licenseUrl)}">Licença</a></small></p>`).join("")}</details>` : ""}
     <p class="muted">${escaped([muscleFor(item), equipment[item.equipment] || item.equipment].filter(Boolean).join(" · "))}</p>
+    ${preview ? `<section class="stack"><h3>Como fazer</h3><p>${escaped(preview)}</p>${instructions}</section>` : ""}
     ${exerciseVideo(item)}
-    ${item.instructions?.length ? `<h3>${item.custom || item.portuguese ? "Instruções" : "Instruções da base (em inglês)"}</h3><ol>${item.instructions.map(step => `<li>${escaped(step)}</li>`).join("")}</ol>` : ""}
     ${item.machineTranslated ? "<small>Instruções traduzidas automaticamente para português.</small>" : ""}
     ${item.credit ? `<small>Texto: ${escaped(item.credit.author)} / wger · ${escaped(item.credit.license)}</small>` : ""}
     ${musclePanel([{ id: item.id, sets: 1 }], false)}
@@ -635,6 +655,10 @@ document.addEventListener("input", event => {
 });
 
 document.addEventListener("change", event => {
+  if (event.target.id === "complete-media") {
+    showResults(document.querySelector("#catalog-results"), document.querySelector("#catalog-search").value, false);
+    return;
+  }
   if (event.target.id === "achievement-category") {
     achievementCategory = event.target.value;
     render(true);

@@ -36,8 +36,11 @@ function exerciseVideo(item) {
   const saved = window.GymWellness?.videoSaved(video.url);
   const play = `<button type="button" class="with-icon" data-action="video-action" data-op="play-video" data-value="${escaped(item.id)}">${glyph("play")} ${saved ? "Assistir offline" : "Assistir online"}</button>`;
   const storage = saved ? "Remover vídeo offline" : `Salvar vídeo offline · ${Math.ceil(video.size / 1e6)} MB`;
+  const download = saved || video.size <= 64 * 1024 * 1024
+    ? `<button type="button" data-action="video-action" data-op="${saved ? "remove-video" : "save-video"}" data-value="${escaped(item.id)}">${storage}</button>`
+    : `<small>Disponível online · ${Math.ceil(video.size / 1e6)} MB</small>`;
   return `<section class="stack"><h3>Vídeo da execução</h3>
-    ${play}<button type="button" data-action="video-action" data-op="${saved ? "remove-video" : "save-video"}" data-value="${escaped(item.id)}">${storage}</button>
+    ${play}${download}
     <small>Vídeo de ${escaped(video.credit.author)} · ${escaped(video.provider || "wger")} · ${escaped(video.credit.license)}</small>
     ${video.source ? `<a class="accent" href="${escaped(video.source)}">Fonte e licença do vídeo</a>` : ""}</section>`;
 }
