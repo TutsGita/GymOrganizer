@@ -80,6 +80,7 @@ function snapshotWorkout(active) {
   return active.plan.exercises.map((item, index) => ({
     id: item.id, name: titleFor(exerciseFor(item)), method: active.log?.[index]?.method || "normal",
     note: active.log?.[index]?.note || "",
+    primaryMuscles: exerciseFor(item).primaryMuscles || [],
     sets: active.checked[index].flatMap((done, set) => done ? [{ number: set + 1, ...actualSet(active, index, set) }] : [])
   }));
 }
@@ -130,9 +131,12 @@ function history() {
   const weekExercises = weekEntries.reduce((sum, entry) => sum + entry.exercises, 0);
   const weekSeconds = weekEntries.reduce((sum, entry) => sum + entry.seconds, 0);
   const selectedEntries = byDay.get(selectedDay) || [];
+  const outdoorDays = new Set(outdoorEntries().map(entry => entry.start.slice(0, 10)));
   const currentExercise = tracked.has(progressExercise) ? progressExercise : tracked.keys().next().value;
   const points = currentExercise ? progressionPoints(currentExercise) : [];
   return heading("Calendário") + `<div class="stack">
+    ${button("activities", "Corridas e pedais", "history")}
+
     <section class="glass stack">
       <div class="row spread">
         ${iconButton("calendar-month", "Mês anterior", "back", -1)}
@@ -147,7 +151,8 @@ function history() {
           const key = localDate(new Date(date.getFullYear(), date.getMonth(), day, 12));
           const entries = byDay.get(key) || [];
           return `<button type="button" data-action="calendar-day" data-value="${key}" aria-pressed="${key === selectedDay}"
-            aria-label="${dateLabel(dayDate(key))}, ${plural(entries.length, "treino", "treinos")}${activeScaleProfile().weights[key] ? ", com pesagem" : ""}"><span>${day}</span>
+            aria-label="${dateLabel(dayDate(key))}, ${plural(entries.length, "treino", "treinos")}${activeScaleProfile().weights[key] ? ", com pesagem" : ""}${outdoorDays.has(key) ? ", com atividade" : ""}"><span>${day}</span>
+            ${outdoorDays.has(key) ? '<span class="activity-dot" aria-hidden="true"></span>' : ""}
             ${activeScaleProfile().weights[key] ? '<span class="weight-dot" aria-hidden="true"></span>' : ""}
             ${entries.length ? `<span class="calendar-dot" aria-hidden="true"></span>` : ""}</button>`;
         }).join("")}
@@ -158,6 +163,7 @@ function history() {
       <div><strong>${weekExercises}</strong><small>Exercícios concluídos</small></div>
       <div><strong>${duration(weekSeconds)}</strong><small>Tempo registrado</small></div></div>
     </section>
+    ${activityDayPanel(selectedDay)}
     ${weightEvolution(selectedDay)}
     <section class="glass stack"><h2>${dateLabel(date)}</h2>
       ${selectedEntries.length ? selectedEntries.map(({ entry, index }) => `<article class="row spread">
@@ -177,6 +183,7 @@ function history() {
 
 function openHistoryEntry(index) {
   const entry = state.history[index];
+  if (!entry) return;
   openSheet(entry.name, `<div class="stack">
     <p class="muted">${new Date(entry.ended).toLocaleDateString("pt-BR")} · ${duration(entry.seconds)} · ${entry.sets}/${entry.total} séries</p>
     ${entry.records ? entry.records.map(record => `<article class="glass stack"><div>
@@ -185,5 +192,10 @@ function openHistoryEntry(index) {
         ${set.drops?.length ? " → " + set.drops.map(kg).join(" → ") : ""}</small></div>`).join("") : '<small>Nenhuma série concluída.</small>'}
       ${record.note ? `<p class="note">${escaped(record.note)}</p>` : ""}</article>`).join("")
       : '<p class="muted">Este treino foi salvo antes do registro de cargas por série.</p>'}
+    <div class="row wrap">
+      ${entry.records?.some(record => record.sets.length) ? button("edit-history-loads", "Corrigir cargas", "edit", "", index) : ""}
+      ${button("ask-remove-history", "Excluir sessão", "trash", "danger", index)}
+    </div>
   </div>`);
+
 }

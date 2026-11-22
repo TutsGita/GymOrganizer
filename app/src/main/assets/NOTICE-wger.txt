@@ -1,0 +1,13 @@
+wger Workout Manager — https://wger.de/
+Textos e metadados obtidos de https://wger.de/api/v2/exerciseinfo/
+Referências de vídeos obtidas de https://wger.de/api/v2/video/
+
+O autor e a licença dos itens do wger estão em wger-catalog.js, wger-videos.js e nos detalhes do exercício.
+O texto fonte foi formatado como lista de passos e os músculos/equipamentos foram mapeados para o catálogo do app.
+Arquivos de vídeo são obtidos diretamente do wger ao assistir online ou ao solicitar uma cópia offline.
+As demonstrações adicionais do Wikimedia Commons têm fonte, autor e licença listados em commons-videos.js.
+Licenças selecionadas:
+CC BY-SA 3.0 — https://creativecommons.org/licenses/by-sa/3.0/
+CC BY-SA 4.0 — https://creativecommons.org/licenses/by-sa/4.0/
+CC BY 4.0 — https://creativecommons.org/licenses/by/4.0/
+CC0 1.0 — https://creativecommons.org/publicdomain/zero/1.0/

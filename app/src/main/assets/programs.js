@@ -5,18 +5,81 @@ const getSlotLabel = (mode, index) => mode === "weekly" ? weekDays[index] : Stri
 const getWorkout = id => state.plans.find(workout => workout.id === id);
 let selectedProgram = null;
 let programDraft = null;
+let programFromRecord = false;
+
+function nextSlot(program) {
+  return program.mode === "weekly" ? (new Date().getDay() + 6) % 7 : (program.next || 0);
+}
+
+function record() {
+  return heading("Iniciar treino") + `<div class="stack">
+    ${state.active ? `<section class="glass record-plan stack">
+      <h2>Treino em andamento</h2><p>${escaped(state.active.plan.name)}</p>
+      ${button("session", "Retomar treino", "play", "primary")}</section>` : ""}
+    <div class="row spread"><h2>Planos de treino</h2>${button("programs", "Organizar", "list")}</div>
+    ${state.programs.map(program => {
+      const index = nextSlot(program);
+      const workout = getWorkout(program.slots[index]);
+      return `<article class="glass record-plan stack">
+        <div class="row"><span class="tile-icon">${glyph("fitness")}</span><div class="grow">
+          <h3>${escaped(program.name)}</h3><small>${getSlotLabel(program.mode, index)} · ${workout ? escaped(workout.name) : "Descanso"}</small>
+        </div></div>
+        <div class="row wrap">${button("view-program", "Abrir plano", "next", "", program.id)}
+        ${workout && !state.active ? button("start-program", "Iniciar", "play", "primary", program.id) : ""}</div>
+      </article>`;
+    }).join("") || '<p class="glass muted">Crie um plano para organizar suas fichas por dia ou em sequência.</p>'}
+    <div class="row spread"><h2>Fichas avulsas</h2>${button("new", "Criar", "plus")}</div>
+    ${state.plans.map(workout => `<article class="glass row">
+      <div class="grow"><h3>${escaped(workout.name)}</h3><small>${plural(workout.exercises.length, "exercício", "exercícios")}</small></div>
+      ${button(state.active ? "view-workout" : "setup", state.active ? "Ver ficha" : "Iniciar", state.active ? "list" : "play", "", workout.id)}
+    </article>`).join("") || '<p class="glass muted">Nenhuma ficha criada.</p>'}
+  </div>`;
+}
+
+async function planPdfData(id) {
+  await loadCatalog();
+  const program = state.programs.find(item => item.id === id);
+  if (!program) throw new Error("Plano indisponível");
+  return {
+    name: program.name,
+    mode: program.mode === "weekly" ? "Dias da semana" : "Sequência de treinos",
+    slots: program.slots.map((workoutId, index) => {
+      const workout = getWorkout(workoutId);
+      return {
+        label: getSlotLabel(program.mode, index),
+        name: workout?.name || (program.mode === "weekly" ? "Descanso" : "Sem ficha"),
+        note: workout?.note || "",
+        exercises: (workout?.exercises || []).map(row => ({
+          name: titleFor(exerciseFor(row)), sets: row.sets, reps: row.reps, load: kg(row.weight), note: row.note || ""
+        }))
+      };
+    })
+  };
+}
+
+async function exportPlanPdf(id, control) {
+  if (!window.GymPlan) { toast("A exportação está disponível no Android."); return; }
+  control.disabled = true;
+  try {
+    window.GymPlan.exportPdf(JSON.stringify(await planPdfData(id)));
+  } catch {
+    toast("Não foi possível preparar o PDF.");
+  } finally {
+    control.disabled = false;
+  }
+}
 
 function programs() {
   const program = state.programs.find(item => item.id === selectedProgram);
-  const todayIndex = (new Date().getDay() + 6) % 7;
   if (program) {
     const rows = program.slots.flatMap(id => getWorkout(id)?.exercises || []);
     return heading(program.name, true) + `<div class="stack">
-      <div class="row spread"><h2>${program.mode === "weekly" ? "Semana" : "Sequência"}</h2>
-        ${button("edit-program", "Editar", "edit", "", program.id)}</div>
+      <div class="row spread wrap"><h2>${program.mode === "weekly" ? "Semana" : "Sequência"}</h2>
+        <div class="row wrap">${button("edit-program", "Editar", "edit", "", program.id)}
+        ${button("export-plan", "Exportar PDF", "list", "", program.id)}</div></div>
       ${program.slots.map((id, index) => {
         const workout = getWorkout(id);
-        const highlighted = program.mode === "weekly" ? index === todayIndex : index === program.next;
+        const highlighted = index === nextSlot(program);
         return `<article class="glass stack ${highlighted ? "next-workout" : ""}">
           <div class="row spread"><strong>${getSlotLabel(program.mode, index)}</strong>
             ${highlighted ? `<small class="accent">${program.mode === "weekly" ? "Hoje" : "Próximo treino"}</small>` : ""}</div>
@@ -86,8 +149,12 @@ function saveProgram() {
 
 function startSlot(index) {
   const program = state.programs.find(item => item.id === selectedProgram);
-  const workout = getWorkout(program?.slots[index]);
-  if (workout) startSetup(workout, { id: program.id, index, slots: [...program.slots] });
+  if (program) startProgramSlot(program, index);
+}
+
+function startProgramSlot(program, index) {
+  const workout = getWorkout(program.slots[index]);
+  if (workout) startSetup(workout, { id: program.id, mode: program.mode, index, slots: [...program.slots] });
 }
 
 function advanceProgram(active) {

@@ -1,5 +1,33 @@
 # Histórico de versões
 
+## 0.4.0
+
+Alterações desde a última versão pública, 0.3.0.
+
+- Nova barra de navegação com botão central para iniciar ou retomar treino, aba de Nutrição e atalhos de Temas e Conquistas no Perfil.
+- Exportação de planos semanais e sequenciais em PDF pelo seletor de arquivos do Android.
+- Progressão por perfil com XP por exercício e missões diárias e semanais. Seis elos, de Ferro a Diamante, até o nível 60.
+- Catálogo offline em português e mais demonstrações licenciadas do wger e do Wikimedia Commons. Os vídeos só são salvos quando solicitados.
+- 80 medalhas por perfil, com categorias de treino, força, cardio, metas, volume e recuperação. Corrigir ou excluir registros recalcula as conquistas.
+- Diário de corridas, pedais e outras atividades por perfil.
+- Remoção das fotos legadas de licença incerta e limpeza de vídeos salvos que saíram do catálogo.
+- Diário de água por perfil e por data, meta editável e lembretes opcionais.
+- Diário alimentar com busca online na TACO, acesso ao site da TBCA, cadastro manual e consulta de produtos por código de barras.
+- Estimativas de calorias por objetivo e atividade. O diário sinaliza quando proteína e fibras ficam abaixo da referência nos alimentos registrados.
+- Inclui os ajustes de interface, o histórico offline e o download de atualizações das compilações 0.3.1 e 0.3.2.
+
+## 0.3.2
+
+- Download de atualizações dentro do app, com confirmação de instalação pelo Android.
+- Histórico de versões disponível offline em Perfil.
+
+## 0.3.1
+
+- A barra do app encosta na área de navegação do Android. Os cantos arredondados ajustam apenas o espaçamento lateral dos botões.
+- As barras do sistema acompanham a paleta do app, com ícones claros ou escuros conforme o fundo.
+- A rolagem usa menos efeitos de composição. No Android 15 ou superior, a interface solicita uma taxa de atualização alta ao sistema.
+- Se o componente da interface parar de responder, o app tenta reabri-lo e retoma os dados que já foram salvos.
+
 ## 0.3.0
 
 - Perfis de pesagem independentes para compartilhar a mesma balança. O histórico anterior fica em Meu perfil.

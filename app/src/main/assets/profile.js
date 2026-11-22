@@ -5,7 +5,7 @@ function activeScaleProfile() {
 }
 
 function scaleProfilePicker() {
-  return `<label class="field">Perfil de pesagem<select id="scale-profile-picker">
+  return `<label class="field">Perfil ativo<select id="scale-profile-picker">
     ${Object.entries(state.scaleProfiles).map(([id, person]) =>
       `<option value="${escaped(id)}" ${id === state.scaleProfileId ? "selected" : ""}>${escaped(person.name)}</option>`).join("")}
   </select></label>`;
@@ -42,9 +42,15 @@ function profile() {
   const area = (height / 100) ** 2;
   const today = localDate(Date.now());
   return heading("Perfil") + `<div class="stack">
+    ${rankCard()}
     <section class="glass stack">
       ${scaleProfilePicker()}
       ${button("new-scale-profile", "Novo perfil", "plus")}
+    </section>
+    <section class="glass stack">
+      ${button("missions", "Missões", "list")}
+      ${button("achievements", "Conquistas", "medal")}
+      ${button("themes", "Temas", "palette")}
     </section>
     <p class="muted">Os dados de cada pessoa ficam neste aparelho.</p>
     <form id="profile-height" class="glass stack">
@@ -73,7 +79,11 @@ function profile() {
       <label class="field">Peso (kg)<input name="mass" type="number" inputmode="decimal" required min="0.01" max="1000" step="0.01"></label>
       <small>Salvar outra pesagem na mesma data corrige o valor daquele dia.</small>
       <button class="primary">Salvar pesagem</button>
-    </form></div>`;
+    </form>
+    <section class="glass stack"><h2>Sobre o app</h2>
+      ${button("changelog", "Histórico de versões", "history")}
+      <a class="scale-link" href="gym://updates/check">Verificar atualizações</a>
+    </section></div>`;
 }
 
 function saveMeasurement(form) {

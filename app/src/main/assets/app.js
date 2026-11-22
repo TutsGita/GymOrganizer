@@ -47,7 +47,7 @@ const escaped = value => String(value ?? "").replace(/[&<>"']/g, ch =>
 const normalized = value => value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 const titleFor = item => aliases[item.id] || item.name;
 const muscleFor = item => (item.primaryMuscles || []).map(value => muscles[value] || value).join(", ");
-const searchText = item => normalized([item.name, titleFor(item), item.equipment,
+const searchText = item => normalized([item.name, item.originalName, titleFor(item), item.equipment,
   equipment[item.equipment], ...[...(item.primaryMuscles || []), ...(item.secondaryMuscles || [])]
     .flatMap(key => [key, muscles[key]])].filter(Boolean).join(" "));
 const popularIds = Object.keys(aliases);
@@ -134,22 +134,37 @@ function saveSessionProgress() {
 function loadCatalog() {
   if (catalogReady) return Promise.resolve();
   if (catalogLoading) return catalogLoading;
-  catalogLoading = new Promise((resolve, reject) => {
+  const load = name => new Promise((resolve, reject) => {
     const script = document.createElement("script");
-    script.src = "catalog.js";
-    script.onload = () => {
-      for (const item of window.EXERCISES || []) catalog.set(item.id, item);
-      for (const item of state.custom) catalog.set(item.id, item);
-      catalogReady = true;
-      catalogLoading = null;
-      resolve();
-    };
-    script.onerror = () => {
-      catalogLoading = null;
-      reject(new Error("Catálogo offline indisponível."));
-    };
+    script.src = name;
+    script.onload = resolve;
+    script.onerror = () => reject(new Error("Catálogo offline indisponível."));
     document.head.appendChild(script);
   });
+  catalogLoading = Promise.all(["catalog.js", "wger-catalog.js", "catalog-pt.js", "wger-videos.js", "commons-videos.js"].map(load)).then(() => {
+    for (const item of window.EXERCISES || []) catalog.set(item.id, item);
+    for (const item of window.WGER_EXERCISES || []) {
+      const previous = catalog.get(item.id);
+      catalog.set(item.id, { ...previous, originalName: previous?.name, ...item });
+    }
+    for (const [id, [name, instructions]] of Object.entries(window.GYM_EXERCISES_PT)) {
+      const item = catalog.get(id);
+      if (item && !item.portuguese) {
+        catalog.set(id, { ...item, originalName: item.originalName || item.name, name, instructions,
+          portuguese: true, machineTranslated: true });
+      }
+    }
+    for (const [id, video] of Object.entries({...window.WGER_VIDEO_ALIASES, ...window.COMMONS_EXERCISE_VIDEOS})) {
+      const item = catalog.get(id);
+      if (item && !item.video) item.video = video;
+    }
+    for (const item of state.custom) catalog.set(item.id, item);
+    catalogReady = true;
+    if (window.GymWellness?.hasSavedVideos?.()) {
+      const currentVideos = [...new Set([...catalog.values()].flatMap(item => item.video ? [item.video.url] : []))];
+      window.GymWellness.pruneSavedVideos(JSON.stringify(currentVideos));
+    }
+  }).finally(() => { catalogLoading = null; });
   return catalogLoading;
 }
 
@@ -162,6 +177,7 @@ function home() {
       <p class="muted">Escolha os exercícios e defina suas séries, repetições e cargas.</p>
       ${button("new", "Criar treino", "plus", "primary")}
     </section>
+    <div class="workout-shortcuts">${button("programs", "Planos", "list")}${button("library", "Exercícios", "search")}</div>
     <div class="row spread section-head"><h2>Minhas fichas</h2><small>${plural(state.plans.length, "treino", "treinos")}</small></div>
     <section class="stack">${state.plans.length ? state.plans.map(plan => `<article class="glass">
       <div class="row"><span class="tile-icon">${glyph("list")}</span><div class="grow"><h3>${escaped(plan.name)}</h3>
@@ -204,6 +220,7 @@ function library() {
   return heading("Exercícios") + `<section class="stack">
     ${button("create-custom", "Criar exercício", "plus")}
     <label class="field">Buscar no catálogo <input id="catalog-search" type="search" placeholder="Nome, músculo ou equipamento" autocomplete="off"></label>
+    ${button("saved-exercise-videos", "Vídeos salvos", "play")}
     <div id="catalog-results" class="catalog"></div></section>`;
 }
 
@@ -252,7 +269,10 @@ function showDetails(item) {
         data-photo="${index}" aria-label="Ampliar foto ${index + 1} de ${escaped(titleFor(item))}">
         ${photo(path)}<span>${glyph("search")}</span></button>`).join("")}</div>` : ""}
     <p class="muted">${escaped([muscleFor(item), equipment[item.equipment] || item.equipment].filter(Boolean).join(" · "))}</p>
-    ${item.instructions?.length ? `<h3>${item.custom ? "Instruções" : "Instruções da base (em inglês)"}</h3><ol>${item.instructions.map(step => `<li>${escaped(step)}</li>`).join("")}</ol>` : ""}
+    ${exerciseVideo(item)}
+    ${item.instructions?.length ? `<h3>${item.custom || item.portuguese ? "Instruções" : "Instruções da base (em inglês)"}</h3><ol>${item.instructions.map(step => `<li>${escaped(step)}</li>`).join("")}</ol>` : ""}
+    ${item.machineTranslated ? "<small>Instruções traduzidas automaticamente para português.</small>" : ""}
+    ${item.credit ? `<small>Texto: ${escaped(item.credit.author)} / wger · ${escaped(item.credit.license)}</small>` : ""}
     ${musclePanel([{ id: item.id, sets: 1 }], false)}
   </div>`);
 }
@@ -365,11 +385,22 @@ function exerciseDetailsButton(exercise, description) {
 
 function render(keepScroll = false) {
   const y = window.scrollY;
-  screen.innerHTML = ({ home, editor, library, programs, session, history, profile, themes })[page]();
-  navigation.innerHTML = `<div class="nav-inner">${[["home", "Treinos", "fitness"], ["programs", "Planos", "list"], ["library", "Exercícios", "search"],
-    ["history", "Calendário", "history"], ["profile", "Perfil", "info"], ["themes", "Temas", "palette"]].map(([key, name, icon]) => `<button type="button" data-action="${key}" ${(page === key || key === "home" && ["editor", "session"].includes(page)) ? 'aria-current="page"' : ""}>
-      ${glyph(icon)}${name}</button>`).join("")}</div>`;
+  screen.innerHTML = ({ home, editor, library, programs, record, session, history, profile, themes,
+    changelog, water, nutrition, activities, achievements, trainingHabits, missions })[page]();
+  const tabs = [
+    ["home", "Treinos", "fitness", ["editor", "library"]],
+    ["history", "Calendário", "history", ["activities"]],
+    ["record", "Iniciar", "play", ["session"]],
+    ["nutrition", "Nutrição", "nutrition", ["water"]],
+    ["profile", "Perfil", "profile", ["themes", "changelog", "achievements", "trainingHabits", "missions"]]
+  ];
+  const current = page === "programs" ? (programFromRecord ? "record" : "home") : page;
+  navigation.innerHTML = `<div class="nav-inner">${tabs.map(([key, name, icon, children]) =>
+    `<button type="button" data-action="${key}" ${key === "record" ? 'class="record-tab"' : ""}
+      ${current === key || children.includes(current) ? 'aria-current="page"' : ""}>
+      <span class="nav-symbol">${glyph(icon)}</span><span>${name}</span></button>`).join("")}</div>`;
   if (page === "library") showResults(document.querySelector("#catalog-results"), "", false);
+  if (page === "nutrition" && foodQuery) searchTaco(foodQuery);
   document.querySelectorAll("[data-complete]").forEach(input => {
     const sets = state.active.checked[Number(input.dataset.complete)];
     input.indeterminate = sets.some(Boolean) && !sets.every(Boolean);
@@ -378,12 +409,8 @@ function render(keepScroll = false) {
 }
 
 function go(next) {
-  const changed = page !== next;
   page = next;
   render();
-  if (changed && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    screen.animate([{ opacity: .78 }, { opacity: 1 }], { duration: 160, easing: "ease-out" });
-  }
 }
 function closeSheet() {
   sheet.close();
@@ -391,8 +418,8 @@ function closeSheet() {
   setup = null;
   programDraft = null;
 }
-function confirmSheet(title, description, action, label) {
-  openSheet(title, `<div class="stack"><p class="muted">${escaped(description)}</p>${button(action, label, "check", "primary")}</div>`);
+function confirmSheet(title, description, action, label, value = "") {
+  openSheet(title, `<div class="stack"><p class="muted">${escaped(description)}</p>${button(action, label, "check", "primary", value)}</div>`);
 }
 function back() {
   if (photoViewer.open) { photoViewer.close(); return true; }
@@ -402,7 +429,16 @@ function back() {
     confirmSheet("Sair da edição?", "As alterações desta ficha serão descartadas.", "leave-editor", "Sair da edição");
     return true;
   }
-  if (page === "programs" && selectedProgram) { selectedProgram = null; go("programs"); return true; }
+  if (page === "programs" && selectedProgram) {
+    selectedProgram = null;
+    go(programFromRecord ? "record" : "programs");
+    return true;
+  }
+  if (page === "water") { go("nutrition"); return true; }
+  if (["changelog", "themes", "achievements", "missions"].includes(page)) { go("profile"); return true; }
+  if (page === "trainingHabits") { go("achievements"); return true; }
+  if (page === "activities") { go("history"); return true; }
+  if (page === "session") { go("record"); return true; }
   if (page !== "home") { go("home"); return true; }
   return false;
 }
@@ -416,16 +452,24 @@ document.addEventListener("click", event => {
   const plan = state.plans.find(entry => entry.id === value);
   switch (action) {
     case "home":
+    case "record":
+    case "missions":
     case "library":
+    case "water":
+    case "trainingHabits":
+    case "achievements":
+    case "activities":
+    case "nutrition":
+    case "changelog":
     case "themes":
     case "profile":
     case "history":
     case "programs":
       if (page === "editor") { back(); break; }
-      if (action === "programs") selectedProgram = null;
+      if (action === "programs") { selectedProgram = null; programFromRecord = false; }
       go(action); break;
     case "new-scale-profile":
-      openSheet("Novo perfil de pesagem", `<form id="new-scale-profile" class="stack">
+      openSheet("Novo perfil", `<form id="new-scale-profile" class="stack">
         <label class="field">Nome<input name="person" required maxlength="40"></label>
         <button class="primary">Criar perfil</button>
       </form>`);
@@ -435,9 +479,19 @@ document.addEventListener("click", event => {
     case "accept-scale-reading": acceptScaleReading(); break;
     case "select-theme": selectTheme(value, control); break;
     case "view-workout": if (plan) viewWorkout(plan); break;
-    case "view-program": selectedProgram = value; go("programs"); break;
+    case "view-program":
+      programFromRecord = page === "record";
+      selectedProgram = value;
+      go("programs"); break;
+    case "start-program":
+      if (!state.active) {
+        const program = state.programs.find(item => item.id === value);
+        if (program) startProgramSlot(program, nextSlot(program));
+      }
+      break;
     case "new-program": editProgram(); break;
     case "edit-program": editProgram(state.programs.find(item => item.id === value)); break;
+    case "export-plan": exportPlanPdf(value, control); break;
     case "add-slot": programDraft.sequence.push(""); showProgramEditor(); break;
     case "remove-slot": programDraft.sequence.splice(Number(value), 1); showProgramEditor(); break;
     case "delete-program":
@@ -474,6 +528,28 @@ document.addEventListener("click", event => {
       document.querySelectorAll("#editor article")[target]?.scrollIntoView({ block: "nearest" });
       break;
     }
+    case "new-activity": activityEditor(); break;
+    case "view-activity": viewActivity(value); break;
+    case "edit-activity": activityEditor(activityById(value)); break;
+    case "ask-remove-activity":
+      openSheet("Excluir atividade?", `<div class="stack"><p>O registro será removido deste aparelho.</p>
+        ${button("remove-activity", "Excluir registro", "trash", "danger", value)}</div>`);
+      break;
+    case "remove-activity": removeActivity(value); break;
+    case "wellness": wellnessAction(action, value, control); break;
+    case "saved-exercise-videos": {
+      const seen = new Set();
+      const saved = [...catalog.values()].filter(item => {
+        const url = item.video?.url;
+        if (!url || seen.has(url)) return false;
+        seen.add(url);
+        return window.GymWellness?.videoSaved(url);
+      });
+      openSheet("Vídeos salvos", `<div class="stack">${saved.length ? saved.map(item =>
+        button("details", titleFor(item), "play", "", item.id)).join("") : "<p class='muted'>Nenhum vídeo salvo neste aparelho.</p>"}</div>`);
+      break;
+    }
+    case "video-action": videoAction(control, value); break;
     case "details": if (catalog.has(value)) showDetails(catalog.get(value)); break;
     case "zoom-photo": zoomPhoto(catalog.get(value), Number(control.dataset.photo)); break;
     case "close-photo": photoViewer.close(); break;
@@ -482,6 +558,12 @@ document.addEventListener("click", event => {
     case "calendar-month": calendarMonth(Number(value)); break;
     case "calendar-day": selectedDay = value; render(true); break;
     case "history-entry": openHistoryEntry(Number(value)); break;
+    case "habit-action": handleHabit(action, control); break;
+    case "edit-history-loads": editHistoryLoads(Number(value)); break;
+    case "ask-remove-history":
+      confirmSheet("Excluir sessão?", "Este treino e suas séries serão removidos do histórico. As medalhas serão recalculadas.", "remove-history", "Excluir sessão", value);
+      break;
+    case "remove-history": removeHistoryEntry(Number(value)); break;
     case "delete-plan":
       confirmSheet("Excluir ficha?", "Esta ficha será removida dos seus treinos e dos planos que a utilizam.", "confirm-delete", "Excluir ficha"); break;
     case "confirm-delete": {
@@ -512,9 +594,12 @@ document.addEventListener("click", event => {
     case "confirm-discard": {
       const previous = copy(state);
       const active = state.active;
+      const owner = active.profileId || "personal";
+      const before = action === "confirm-finish" ? achievementKeys(owner) : null;
       if (action === "confirm-finish") {
         const ended = Date.now();
-        state.history.unshift({ name: active.plan.name, ended, seconds: Math.max(0, Math.floor((ended - active.started) / 1000)),
+        state.history.unshift({ name: active.plan.name, profileId: owner, started: active.started,
+          program: active.program, ended, seconds: Math.max(0, Math.floor((ended - active.started) / 1000)),
           ...sessionStats(active), total: totalSets(active.plan), exerciseTotal: active.plan.exercises.length,
           records: snapshotWorkout(active) });
         selectedDay = localDate(ended);
@@ -527,6 +612,7 @@ document.addEventListener("click", event => {
         selectedProgram = active.program.id;
         go("programs");
       } else go(action === "confirm-finish" ? "history" : "home");
+      if (before) announceAchievements(before, owner);
       break;
     }
   }
@@ -535,6 +621,7 @@ document.addEventListener("click", event => {
 document.addEventListener("input", event => {
   const input = event.target;
   if (input.form?.id === "exercise-log" && input.tagName === "INPUT") input.setCustomValidity("");
+  if (input.id === "taco-search") searchTaco(input.value);
   if (input.id === "catalog-search") showResults(document.querySelector("#catalog-results"), input.value, false);
   if (input.id === "picker-search") showResults(document.querySelector("#picker-results"), input.value, true);
   if (input.form?.id === "editor") {
@@ -548,6 +635,13 @@ document.addEventListener("input", event => {
 });
 
 document.addEventListener("change", event => {
+  if (event.target.id === "achievement-category") {
+    achievementCategory = event.target.value;
+    render(true);
+    document.querySelector("#achievement-category")?.focus({preventScroll:true});
+    return;
+  }
+  if (changeWellnessDate(event.target)) return;
   if (event.target.id === "scale-profile-picker") {
     switchScaleProfile(event.target.value);
     return;
@@ -591,6 +685,10 @@ document.addEventListener("change", event => {
 document.addEventListener("submit", event => {
   event.preventDefault();
   const form = event.target;
+  if (saveTrainingHabit(form)) return;
+  if (form.id === "history-loads") { saveHistoryLoads(form); return; }
+  if (form.id === "activity-editor") { saveActivity(form); return; }
+  if (saveWellness(form)) return;
   if (form.id === "new-scale-profile") { createScaleProfile(form); return; }
   if (form.id === "profile-height" || form.id === "body-weight") { saveMeasurement(form); return; }
   if (form.id === "exercise-log") { saveExerciseLog(form); return; }
@@ -625,30 +723,37 @@ document.addEventListener("submit", event => {
     const previousRest = state.rest;
     const rest = setup.mode === "guided" ? Number(setup.rest) : 0;
     if (setup.mode === "guided") state.rest = rest;
-    state.active = { plan: copy(setup.plan), program: setup.program, mode: setup.mode, rest, started: Date.now(), restUntil: 0,
+    state.active = { plan: copy(setup.plan), profileId: state.scaleProfileId, program: setup.program, mode: setup.mode, rest, started: Date.now(), restUntil: 0,
       checked: setup.plan.exercises.map(item => Array(item.sets).fill(false)) };
     if (!save()) { state.active = null; state.rest = previousRest; return; }
     closeSheet(); go("session");
   }
 });
 
-setInterval(() => {
-  if (page !== "session" || !state.active) return;
+function updateSessionClocks() {
+  if (document.hidden || page !== "session" || !state.active) return;
   const active = state.active;
   const elapsed = document.querySelector("#elapsed");
-  if (elapsed) elapsed.textContent = clock(Math.max(0, Math.floor((Date.now() - active.started) / 1000)));
+  const elapsedText = clock(Math.max(0, Math.floor((Date.now() - active.started) / 1000)));
+  if (elapsed && elapsed.textContent !== elapsedText) elapsed.textContent = elapsedText;
   const timer = document.querySelector("#remaining");
   if (!timer) return;
   const remaining = Math.max(0, Math.ceil((active.restUntil - Date.now()) / 1000));
-  if (remaining) timer.textContent = clock(remaining);
+  if (remaining) {
+    const remainingText = clock(remaining);
+    if (timer.textContent !== remainingText) timer.textContent = remainingText;
+  }
   else {
     document.querySelector("#timer-panel").remove();
     toast("Descanso concluído");
   }
-}, 250);
+}
+setInterval(updateSessionClocks, 250);
+document.addEventListener("visibilitychange", updateSessionClocks);
 
-if (state.plans.length || state.active) {
+if (state.plans.length || state.active || state.history.length) {
   loadCatalog().catch(error => toast(error.message)).finally(() => render());
 } else {
   render();
+  if (window.GymWellness?.hasSavedVideos?.()) loadCatalog().catch(error => console.warn(error));
 }

@@ -35,9 +35,8 @@ button, input { font: inherit; }
 button, .glass, dialog, nav {
   border: 1px solid var(--line);
   background: var(--glass);
-  backdrop-filter: blur(18px);
 }
-button { color: inherit; min-height: 46px; border-radius: 13px; padding: 9px 15px; cursor: pointer; }
+button { touch-action: manipulation; color: inherit; min-height: 46px; border-radius: 13px; padding: 9px 15px; cursor: pointer; }
 button:disabled { opacity: .48; cursor: default; }
 button:focus-visible, input:focus-visible { outline: 2px solid var(--purple); outline-offset: 3px; }
 button svg { flex: none; }
@@ -49,9 +48,24 @@ button.danger { color: var(--danger); }
 #shell { max-width: 650px; margin: auto; }
 main { min-height: 100dvh; padding: 25px 19px 110px; }
 nav { position: fixed; z-index: 2; bottom: 0; left: 0; right: 0; background: var(--surface); }
-.nav-inner { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); max-width: 650px; margin: auto; padding: 5px 4px 7px; }
+.nav-inner {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)) 70px repeat(2, minmax(0, 1fr));
+  align-items: stretch; max-width: 650px; margin: auto; min-height: 57px;
+  padding: 2px max(4px, var(--nav-safe-left, 0px), var(--nav-safe-right, 0px));
+}
 nav button { display: grid; place-items: center; gap: 2px; background: transparent; border: 0; font-size: clamp(.59rem, 2.45vw, .75rem); color: var(--muted); padding: 5px 1px; min-width: 0; }
 nav button[aria-current] { color: var(--purple); background: var(--selection); }
+nav .record-tab { position: relative; display: flex; align-items: end; justify-content: center; font-weight: 800; color: var(--text); }
+nav .record-tab[aria-current] { background: transparent; color: var(--purple); }
+.record-tab .nav-symbol {
+  position: absolute; top: -18px; left: 50%; transform: translateX(-50%); display: grid;
+  place-items: center; width: 53px; height: 53px; border-radius: 50%;
+  background: var(--purple); color: var(--on-accent); border: 3px solid var(--surface);
+  box-shadow: 0 3px 12px #0003;
+}
+.record-tab .glyph { width: 26px; height: 26px; }
+.workout-shortcuts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.record-plan { background: linear-gradient(135deg, var(--hero), var(--glass)); }
 .row { display: flex; align-items: center; gap: 12px; }
 .spread { justify-content: space-between; }
 .wrap { flex-wrap: wrap; }
@@ -103,7 +117,7 @@ progress::-webkit-progress-value { background: var(--purple); border-radius: 9px
 .clock-center { display: grid; justify-items: center; gap: 8px; text-align: center; }
 .timer { position: sticky; top: 6px; z-index: 1; background: var(--surface); }
 dialog { color: inherit; width: min(100% - 22px, 560px); max-height: 88dvh; border-radius: 22px; padding: 16px; background: var(--surface); }
-dialog::backdrop { background: #0e0d18b5; backdrop-filter: blur(5px); }
+dialog::backdrop { background: #0e0d18b5; }
 .dialog-head { margin-bottom: 12px; }
 .full { width: 100%; }
 #toast { position: fixed; z-index: 3; bottom: 78px; left: 50%; transform: translateX(-50%); border-radius: 12px; padding: 11px 16px; background: var(--surface); border: 1px solid var(--line); width: max-content; max-width: 90%; }
@@ -160,11 +174,10 @@ textarea { resize: vertical; }
 .weight-dot { position: absolute; bottom: 5px; left: 52%; width: 4px; height: 4px; border-radius: 50%; background: var(--assist); }
 .calendar-grid .calendar-dot { left: 33%; }
 #program-editor select { appearance: none; padding-right: 32px; background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%); background-size: 5px 5px; background-position: right 17px center, right 12px center; background-repeat: no-repeat; }
-.scale-link { display: grid; place-items: center; min-height: 46px; border-radius: 13px; background: var(--purple); color: var(--on-accent); text-decoration: none; font-weight: 700; }
+.scale-link { touch-action: manipulation; display: grid; place-items: center; min-height: 46px; border-radius: 13px; background: var(--purple); color: var(--on-accent); text-decoration: none; font-weight: 700; }
 @media (max-width: 380px) {
   main { padding-inline: 12px; }
-  .nav-inner { padding-inline: 2px; }
-  nav button { padding-inline: 1px; min-width: 0; }
+  nav button { padding-inline: 1px; font-size: clamp(.5rem, 2.75vw, .65rem); }
   .card-actions { flex-wrap: wrap; }
 }
 
@@ -307,3 +320,27 @@ textarea { resize: vertical; }
 .scale-emblem { justify-self: center; width: 64px; height: 64px; }
 .scale-emblem .glyph { width: 32px; height: 32px; }
 .scale-reading { font-size: clamp(1.65rem, 8vw, 2.5rem); }
+.activity-dot { position: absolute; bottom: 5px; left: 69%; width: 4px; height: 4px; border-radius: 50%; background: var(--pink); }
+.calendar-grid button[aria-pressed="true"] .activity-dot { background: var(--on-accent); }
+.calendar-sections { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.calendar-sections [aria-pressed="true"] { background: var(--selection); border-color: var(--purple); color: var(--purple); font-weight: 700; }
+.profile-rank .rank-avatar {
+  display: grid; place-items: center; flex: 0 0 54px; height: 54px; border: 3px solid var(--rank);
+  border-radius: 50%; box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px var(--rank);
+  font-size: 1.25rem; font-weight: 800;
+}
+.rank-0 { --rank: #828b9c; }
+.rank-1 { --rank: #b9764f; }
+.rank-2 { --rank: #a6b6ca; }
+.rank-3 { --rank: #d6a43e; }
+.rank-4 { --rank: #44a998; }
+.rank-5 { --rank: #7b8ff2; }
+.mission-list { list-style: none; padding: 0; margin: 0; }
+.mission-list li { padding: 9px 0; border-top: 1px solid var(--line); }
+.mission-list .row { flex-wrap: wrap; gap: 4px 12px; }
+.achievement.earned { border-color: var(--purple); }
+.achievement.earned .tile-icon { color: var(--purple); }
+.achievement:not(.earned) .tile-icon { color: var(--muted); }
+.achievement-category summary { cursor: pointer; font-weight: 750; }
+.achievement-category[open] summary { margin-bottom: 12px; }
+.habit-entry { border-top: 1px solid var(--line); padding-top: 10px; }

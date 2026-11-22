@@ -3,14 +3,14 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/TutsGita/GymOrganizer/releases/download/v0.3.0/GymOrganizer-0.3.0.apk"><strong>⬇ Baixar APK 0.3.0</strong></a>
+  <a href="https://github.com/TutsGita/GymOrganizer/releases/download/v0.4.0/GymOrganizer-0.4.0.apk"><strong>⬇ Baixar APK 0.4.0</strong></a>
 </p>
 
 # Gym Organizer
 
-Monte sua ficha, registre séries e acompanhe a evolução das cargas no Android. Treinos, fotos e histórico ficam no celular e funcionam offline.
+Monte sua ficha, registre séries e acompanhe a evolução das cargas no Android. Treinos, instruções e histórico ficam no celular e funcionam offline.
 
-- **Planejamento.** Organize as fichas por dia ou em sequência A/B/C. Escolha entre 876 exercícios com fotos ou cadastre os seus.
+- **Planejamento.** Organize as fichas por dia ou em sequência A/B/C. Escolha entre 1.298 exercícios com instruções em português ou cadastre os seus.
 - **Durante o treino.** Marque séries, ajuste cargas, registre drop sets e controle o descanso.
 - **Evolução.** Consulte frequência, tempo de treino e pesagens no calendário.
 
@@ -33,18 +33,28 @@ O perfil e o calendário exibem peso, impedância em ohms e estimativas separada
 
 Baixe o APK no topo da página. Requer Android 8.0 ou superior. Para compilar, use JDK 17, Android SDK 35 e o comando `./gradlew :app:assembleDebug` (Windows: `.\gradlew.bat :app:assembleDebug`).
 
+Em **Perfil**, consulte o histórico de versões offline e verifique atualizações. A partir da 0.3.2, as novas versões podem ser baixadas no próprio app. O Android pede confirmação para instalar.
+
 [Histórico de versões](CHANGELOG.md)
+
+## Planos, treinos e nutrição
+
+- O botão central **Iniciar** abre os planos, as fichas avulsas e o treino em andamento. Abra um plano e toque em **Exportar PDF** para salvar a sequência ou semana, com exercícios, séries, repetições, cargas e notas.
+- Em **Nutrição → Água**, registre o consumo, ajuste a meta e configure lembretes opcionais.
+- Em **Nutrição → Alimentação**, consulte a TACO online ou cadastre um alimento pela tabela do rótulo. No Android com Google Play Services, a câmera lê o código. A busca do produto usa o Open Food Facts. Os diários salvos ficam disponíveis offline.
+- A meta calórica usa peso, altura, idade, atividade e objetivo. Quando disponível e dentro dos limites de plausibilidade do app, a estimativa de repouso usa o modelo OKOK com impedância. Sem essa estimativa, usa [Mifflin–St Jeor](https://pubmed.ncbi.nlm.nih.gov/2305711/). As metas são referências para adultos. Consulte profissionais de saúde e nutrição para metas individuais.
+- Os textos em português ficam disponíveis offline. Em exercícios com vídeo, use **Assistir online** ou **Salvar vídeo offline**. Para liberar espaço, abra **Treinos → Exercícios → Vídeos salvos**.
+
+## Corridas e pedais
+
+Em **Calendário → Corridas e pedais**, registre modalidade, início, duração, distância e notas. Os registros permanecem no perfil local.
+
+Em **Perfil → Conquistas**, consulte as medalhas de corrida, pedal e musculação. Abra o registro pela própria medalha para corrigir uma atividade, ajustar cargas ou excluir o lançamento. Em **Perfil → Missões**, acompanhe as metas diárias e semanais. Exercícios e missões dão XP ao perfil ativo, com seis elos entre Ferro e Diamante. Corrigir registros recalcula o progresso.
 
 ## Roadmap
 
-Backup local e em nuvem, exportação de fichas em PDF, tabela nutricional e lembretes de água.
+Backup local e em nuvem.
 
 ## Licenças e créditos
 
-- **openScale**, de olie.xdev e colaboradores, é a referência dos protocolos Xiaomi, QN AABB e PICOOC Mini Lite. O projeto original declara GPL versão 3 ou posterior. Consulte o [repositório e aviso de licença](https://github.com/oliexdev/openScale#license) e a [documentação da Mi Scale](https://github.com/oliexdev/openScale/wiki/Xiaomi-Bluetooth-Mi-Scale).
-- **100nandoo** documentou os formatos OKOK no [okok-bia-formulas, publicado sob AGPL-3.0](https://github.com/100nandoo/okok-bia-formulas). **ipanalytics** documentou os [campos do anúncio Xiaomi V2](https://github.com/ipanalytics/Xiaomi-Scale-Unlocked-Reverse-Engineering). Os leitores Android desta versão foram escritos para o Gym Organizer a partir das informações de protocolo. Nenhum desses aplicativos ou bibliotecas é empacotado no APK.
-- [Free Exercise DB](https://github.com/yuhonas/free-exercise-db) — 876 exercícios e 1.746 fotos ([Unlicense](app/src/main/assets/LICENSE-exercises.txt)).
-- [MingCute](https://github.com/mingcute-design/mingcute-icons) — ícones ([Apache 2.0](app/src/main/assets/LICENSE-mingcute.txt)).
-- [Body Muscles](https://github.com/emmorts/body-muscles) — mapa muscular, com arte de Ivan Vulović ([Apache 2.0](app/src/main/assets/LICENSE-body-muscles.txt), [atribuições](app/src/main/assets/NOTICE-body-muscles.txt)).
-
-O código próprio do Gym Organizer é distribuído sob a [licença MIT](LICENSE). O catálogo, os ícones e os vetores mantêm as licenças indicadas acima.
+O código próprio do Gym Organizer é distribuído sob a [licença MIT](LICENSE). As fontes de exercícios, imagens e vídeos, as referências de balanças e nutrição e os componentes de terceiros estão em [Créditos e licenças](docs/credits.md).

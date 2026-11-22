@@ -18,10 +18,18 @@ try {
 } catch {
   // Keep the default when local storage is unavailable.
 }
+function syncTheme() {
+  const root = document.documentElement;
+  root.dataset.theme = currentTheme;
+  const palette = getComputedStyle(root);
+  const color = property => palette.getPropertyValue(property).trim().slice(0, 7);
+  window.GymScreen?.apply(color("--background"), color("--surface"));
+}
+document.addEventListener("DOMContentLoaded", syncTheme, { once: true });
 document.documentElement.dataset.theme = currentTheme;
 
 function themes() {
-  return heading("Temas") + `<section class="stack theme-list" aria-label="Temas disponíveis">
+  return heading("Temas", true) + `<section class="stack theme-list" aria-label="Temas disponíveis">
     ${Array.from(themeOptions, ([key, name]) => `<button type="button" class="theme-option"
       data-action="select-theme" data-value="${key}" aria-pressed="${currentTheme === key}">
       <span class="theme-swatches" data-theme="${key}" aria-hidden="true">
@@ -40,7 +48,7 @@ function selectTheme(key, control) {
     return;
   }
   currentTheme = key;
-  document.documentElement.dataset.theme = key;
+  syncTheme();
   control.closest(".theme-list").querySelector('[aria-pressed="true"]').setAttribute("aria-pressed", "false");
   control.setAttribute("aria-pressed", "true");
 }
