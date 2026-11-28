@@ -512,6 +512,9 @@ document.addEventListener("click", event => {
     case "new-program": editProgram(); break;
     case "edit-program": editProgram(state.programs.find(item => item.id === value)); break;
     case "export-plan": exportPlanPdf(value, control); break;
+    case "export-backup": exportBackup(); break;
+    case "import-backup": importBackup(); break;
+    case "confirm-import-backup": confirmImportBackup(); break;
     case "add-slot": programDraft.sequence.push(""); showProgramEditor(); break;
     case "remove-slot": programDraft.sequence.splice(Number(value), 1); showProgramEditor(); break;
     case "delete-program":
