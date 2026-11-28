@@ -80,6 +80,11 @@ function profile() {
       <small>Salvar outra pesagem na mesma data corrige o valor daquele dia.</small>
       <button class="primary">Salvar pesagem</button>
     </form>
+    <section class="glass stack"><h2>Backup dos dados</h2>
+      <small>Salve todos os perfis, fichas, planos e históricos em um arquivo JSON, ou restaure um backup salvo antes.</small>
+      ${button("export-backup", "Exportar backup", "history")}
+      ${button("import-backup", "Importar backup", "history")}
+    </section>
     <section class="glass stack"><h2>Sobre o app</h2>
       ${button("changelog", "Histórico de versões", "history")}
       <a class="scale-link" href="gym://updates/check">Verificar atualizações</a>

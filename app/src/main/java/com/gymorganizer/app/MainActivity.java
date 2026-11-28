@@ -35,6 +35,10 @@ public final class MainActivity extends Activity {
     private WellnessBridge wellness;
     private static final int EXPORT_CARD = 28;
     private static final int EXPORT_PLAN = 29;
+    private static final int EXPORT_BACKUP = 30;
+    private static final int IMPORT_BACKUP = 31;
+    private static final int MAX_BACKUP_BYTES = 20_000_000;
+    private byte[] backupData;
     private byte[] cardImage;
     private JSONObject pdfPlan;
 
@@ -46,6 +50,7 @@ public final class MainActivity extends Activity {
         wellness = new WellnessBridge(this, view);
         view.addJavascriptInterface(wellness, "GymWellness");
         view.addJavascriptInterface(new PlanExporter(), "GymPlan");
+        view.addJavascriptInterface(new BackupBridge(), "GymBackup");
         view.setBackgroundColor(0xff171722);
         view.addJavascriptInterface(new ScreenAppearance(), "GymScreen");
         if (android.os.Build.VERSION.SDK_INT >= 35) {
@@ -296,6 +301,19 @@ public final class MainActivity extends Activity {
             }
             return;
         }
+        if (request == EXPORT_BACKUP) {
+            byte[] bytes = backupData;
+            backupData = null;
+            if (result == RESULT_OK && data != null && data.getData() != null) {
+                if (bytes == null) showCardMessage("Exporte o backup novamente.");
+                else saveBackup(bytes, data.getData());
+            }
+            return;
+        }
+        if (request == IMPORT_BACKUP) {
+            if (result == RESULT_OK && data != null && data.getData() != null) loadBackup(data.getData());
+            return;
+        }
         if (request != EXPORT_CARD) return;
         byte[] pixels = cardImage;
         cardImage = null;
@@ -351,6 +369,87 @@ public final class MainActivity extends Activity {
             String result = message;
             runOnUiThread(() -> showCardMessage(result));
         }, "gym-plan-pdf").start();
+    }
+
+    private final class BackupBridge {
+        @android.webkit.JavascriptInterface
+        public void exportJson(String json, String filename) {
+            if (json == null || json.length() > MAX_BACKUP_BYTES) return;
+            byte[] bytes = json.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+            runOnUiThread(() -> {
+                if (backupData != null || isFinishing() || isDestroyed()) return;
+                backupData = bytes;
+                String name = filename == null ? "" : filename.replaceAll("[\\\\/:*?\"<>|\\p{Cntrl}]", "_").trim();
+                Intent destination = new Intent(Intent.ACTION_CREATE_DOCUMENT)
+                    .addCategory(Intent.CATEGORY_OPENABLE)
+                    .setType("application/json")
+                    .putExtra(Intent.EXTRA_TITLE, name.isEmpty() ? "gym-organizer-backup.json" : name);
+                try {
+                    startActivityForResult(destination, EXPORT_BACKUP);
+                } catch (android.content.ActivityNotFoundException error) {
+                    backupData = null;
+                    showCardMessage("Nenhum seletor de arquivos disponível.");
+                }
+            });
+        }
+
+        @android.webkit.JavascriptInterface
+        public void pickJson() {
+            runOnUiThread(() -> {
+                if (isFinishing() || isDestroyed()) return;
+                Intent source = new Intent(Intent.ACTION_OPEN_DOCUMENT)
+                    .addCategory(Intent.CATEGORY_OPENABLE)
+                    .setType("*/*");
+                try {
+                    startActivityForResult(source, IMPORT_BACKUP);
+                } catch (android.content.ActivityNotFoundException error) {
+                    showCardMessage("Nenhum seletor de arquivos disponível.");
+                }
+            });
+        }
+    }
+
+    private void saveBackup(byte[] bytes, Uri destination) {
+        new Thread(() -> {
+            String message;
+            try (java.io.OutputStream stream = getContentResolver().openOutputStream(destination, "wt")) {
+                if (stream == null) throw new java.io.IOException("Destino indisponível");
+                stream.write(bytes);
+                message = "Backup salvo.";
+            } catch (java.io.IOException | SecurityException error) {
+                message = "Não foi possível salvar o backup.";
+            }
+            String result = message;
+            runOnUiThread(() -> showCardMessage(result));
+        }, "gym-backup-save").start();
+    }
+
+    private void loadBackup(Uri source) {
+        new Thread(() -> {
+            String text = null;
+            String error = null;
+            try (java.io.InputStream stream = getContentResolver().openInputStream(source)) {
+                if (stream == null) throw new java.io.IOException("Origem indisponível");
+                java.io.ByteArrayOutputStream buffer = new java.io.ByteArrayOutputStream();
+                byte[] chunk = new byte[16384];
+                int read;
+                while ((read = stream.read(chunk)) != -1) {
+                    if (buffer.size() + read > MAX_BACKUP_BYTES) throw new java.io.IOException("grande");
+                    buffer.write(chunk, 0, read);
+                }
+                text = buffer.toString("UTF-8");
+            } catch (java.io.IOException | SecurityException failure) {
+                error = "grande".equals(failure.getMessage())
+                    ? "O arquivo é grande demais para ser um backup." : "Não foi possível ler o arquivo.";
+            }
+            String payload = text == null ? "null" : JSONObject.quote(text);
+            String reason = error == null ? "null" : JSONObject.quote(error);
+            runOnUiThread(() -> {
+                if (view != null && !isFinishing() && !isDestroyed()) {
+                    view.evaluateJavascript("window.gymBackupLoaded(" + payload + "," + reason + ")", null);
+                }
+            });
+        }, "gym-backup-load").start();
     }
 
     private void showCardMessage(String message) {

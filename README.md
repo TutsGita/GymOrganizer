@@ -51,9 +51,13 @@ Em **Calendário → Corridas e pedais**, registre modalidade, início, duraçã
 
 Em **Perfil → Conquistas**, consulte as medalhas de corrida, pedal e musculação. Abra o registro pela própria medalha para corrigir uma atividade, ajustar cargas ou excluir o lançamento. Em **Perfil → Missões**, acompanhe as metas diárias e semanais. Exercícios e missões dão XP ao perfil ativo, com seis elos entre Ferro e Diamante. Corrigir registros recalcula o progresso.
 
+## Backup dos dados
+
+Em **Perfil → Backup dos dados**, toque em **Exportar backup** para salvar perfis, fichas, planos e históricos em um arquivo JSON. Para restaurar, toque em **Importar backup** e escolha o arquivo. O app valida o conteúdo e pede confirmação antes de substituir os dados do aparelho. O backup automático do Android também guarda esses dados, sem os vídeos salvos.
+
 ## Roadmap
 
-Backup local e em nuvem.
+Backup em nuvem próprio, além da exportação em arquivo e do backup automático do Android.
 
 ## Licenças e créditos
 

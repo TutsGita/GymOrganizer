@@ -1,5 +1,10 @@
 # Histórico de versões
 
+## Próxima versão
+
+- Em **Perfil → Backup dos dados**, exporte todos os dados para um arquivo JSON e importe um backup com validação e confirmação antes de substituir os dados atuais.
+- Backup automático do Android ativado para os dados do app (perfis, fichas, planos e históricos). Vídeos salvos ficam de fora.
+
 ## 0.4.1
 
 - Resumo de execução em português na seção **Como fazer**, com passo a passo expansível e disponível offline.
